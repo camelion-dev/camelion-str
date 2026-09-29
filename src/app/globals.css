@@ -377,6 +377,39 @@ footer a {
   animation: recommendations-drift 36s linear infinite;
 }
 
+.marquee-product-card,
+.marquee-product-card .plain-product-card {
+  height: 100%;
+}
+
+.marquee-product-card .plain-product-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.marquee-product-card .product-card-media {
+  flex: 0 0 auto;
+}
+
+.marquee-product-card .marquee-card-details {
+  flex: 1;
+}
+
+.marquee-product-card .marquee-card-details h3 {
+  min-height: 2.5em;
+  font-size: 12px;
+}
+
+.marquee-product-card .marquee-card-price {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.marquee-product-card .marquee-card-price .product-card-compare {
+  font-size: 9px;
+}
+
 .recommendation-marquee:hover .recommendation-marquee-track,
 .recommendation-marquee:focus-within .recommendation-marquee-track {
   animation-play-state: paused;
@@ -429,6 +462,11 @@ footer a {
 
 .plain-product-card .product-card-media {
   aspect-ratio: 1;
+}
+
+.plain-product-card .plain-card-media {
+  z-index: 6;
+  cursor: pointer;
 }
 
 .plain-product-card .plain-card-details {
