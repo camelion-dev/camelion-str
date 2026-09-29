@@ -6,7 +6,7 @@ import type { CatalogProduct } from "@/lib/catalog";
 import { useCart } from "@/context/CartContext";
 import { useFavorites } from "@/context/FavoritesContext";
 
-export function ProductCard({ product, compact = false }: { product: CatalogProduct; compact?: boolean }) {
+export function ProductCard({ product, compact = false, plain = false }: { product: CatalogProduct; compact?: boolean; plain?: boolean }) {
   const { name, price, compareAtPrice, badge, visual, stock, active } = product;
   const { addItem } = useCart();
   const { isFavorite, toggleFavorite } = useFavorites();
@@ -31,13 +31,13 @@ export function ProductCard({ product, compact = false }: { product: CatalogProd
   }
 
   return (
-    <article className={`group relative ${compact ? "" : "min-w-0"}`}>
-      <div className="product-card-visual product-visual isolate aspect-[4/5] rounded-2xl border border-[var(--border)] bg-white">
+    <article className={`group relative ${plain ? "glass-product-card" : ""} ${compact ? "" : "min-w-0"}`}>
+      <div className={`product-card-visual product-visual isolate bg-white ${plain ? "plain-product-card rounded-[14px] border-0" : "aspect-[4/5] rounded-2xl border border-[var(--border)]"}`}>
         {badge && <span className={`product-card-badge absolute left-3 top-3 z-10 px-2 py-1 ${badge.startsWith("SAVE") ? "bg-[var(--red)] text-white" : "bg-[var(--foreground)] text-white"}`}>{badge}</span>}
         <button
           type="button"
           onClick={handleFavoriteClick}
-          className={`absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full text-lg shadow-sm transition-colors ${favorited ? "bg-[var(--red)] text-white" : "bg-white hover:bg-[var(--red)] hover:text-white"}`}
+          className={`absolute right-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full text-lg shadow-sm transition-colors ${plain ? "hidden" : ""} ${favorited ? "bg-[var(--red)] text-white" : "bg-white hover:bg-[var(--red)] hover:text-white"}`}
           aria-label={favorited ? `Remove ${name} from favorites` : `Add ${name} to favorites`}
           aria-pressed={favorited}
         >
@@ -56,26 +56,34 @@ export function ProductCard({ product, compact = false }: { product: CatalogProd
         </Link>
         <div className="product-card-media z-0">
           {product.imageUrl ? <div role="img" aria-label={name} className="absolute inset-0 bg-contain bg-center bg-no-repeat" style={{ backgroundImage: `url(${product.imageUrl})` }} /> : <div className={`${visual} product-fallback-visual`} />}
+          {plain && <button
+            type="button"
+            onClick={handleAddToCart}
+            disabled={outOfStock}
+            className="product-card-cta plain-card-cta absolute bottom-0 left-0 z-10 flex w-full items-center justify-center gap-2 border-0 bg-[var(--red)] px-3 py-2 text-[10px] font-medium text-white transition-colors hover:bg-[var(--red-dark)] disabled:cursor-not-allowed disabled:bg-[var(--muted)]"
+          >
+            {outOfStock ? "Out of stock" : justAdded ? "Added ✓" : <>Add to cart</>}
+          </button>}
         </div>
-        <div className="product-card-details z-10 bg-[var(--red)] px-4 py-3 text-white">
-          <p className="product-card-brand text-white/65">Camelion</p>
-          <div className="mt-1 flex items-end justify-between gap-3">
-            <h3 className="product-card-title line-clamp-2">{name}</h3>
-            <div className="shrink-0 text-right">
-              <p className="product-card-price">Rs. {price.toLocaleString()}</p>
-              {compareAtPrice && <p className="product-card-compare text-white/65 line-through">Rs. {compareAtPrice.toLocaleString()}</p>}
+        <div className={`product-card-details z-10 px-0 py-3 ${plain ? "plain-card-details bg-white text-[var(--foreground)]" : "bg-[var(--red)] text-white"}`}>
+          <p className={`product-card-brand ${plain ? "text-[9px] tracking-normal text-[var(--muted)]" : "text-white/65"}`}>Camelion</p>
+          <div className={`mt-1 ${plain ? "block" : "flex items-end justify-between gap-3"}`}>
+            <h3 className={`product-card-title line-clamp-2 ${plain ? "text-[13px] font-medium leading-[1.25]" : ""}`}>{name}</h3>
+            <div className={`${plain ? "mt-1" : "shrink-0 text-right"}`}>
+              <p className={`product-card-price ${plain ? "text-[10px] font-bold" : ""}`}>Rs. {price.toLocaleString()}</p>
+              {compareAtPrice && <p className={`product-card-compare line-through ${plain ? "text-[var(--muted)]" : "text-white/65"}`}>Rs. {compareAtPrice.toLocaleString()}</p>}
             </div>
           </div>
         </div>
       </div>
-      <button
+      {!plain && <button
         type="button"
         onClick={handleAddToCart}
         disabled={outOfStock}
         className="product-card-cta relative z-10 mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--foreground)] px-4 py-3 transition-colors hover:bg-[var(--foreground)] hover:text-white disabled:cursor-not-allowed disabled:border-[var(--border)] disabled:text-[var(--muted)] disabled:hover:bg-transparent"
       >
         {outOfStock ? "Out of stock" : justAdded ? "Added ✓" : <>Add to cart <span aria-hidden="true">→</span></>}
-      </button>
+      </button>}
     </article>
   );
 }
