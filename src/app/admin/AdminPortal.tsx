@@ -9,7 +9,7 @@ import type { CatalogProduct } from "@/lib/catalog";
 import type { AdminOrderSummary } from "@/lib/orders";
 import type { AdminCustomerSummary } from "@/lib/orders";
 
-const emptyForm = { name: "", category: "Batteries", price: "", compareAtPrice: "", stock: "0", badge: "", visual: "product-battery", description: "", imageUrl: "", imagePath: "" };
+const emptyForm = { name: "", category: "Batteries", price: "", compareAtPrice: "", stock: "0", badge: "", description: "", imageUrl: "", imagePath: "" };
 
 function formatOrderDate(iso: string) {
   const date = new Date(iso);
@@ -41,6 +41,7 @@ export default function AdminPortal({ initialProducts }: { initialProducts: Cata
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [notice, setNotice] = useState("");
+  const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState("");
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
@@ -137,14 +138,16 @@ export default function AdminPortal({ initialProducts }: { initialProducts: Cata
     setEditingId(null);
     setImageFile(null);
     setImagePreview("");
+    setIsAddProductModalOpen(false);
     setNotice(editingId ? "Product updated and reflected in the store." : "Product added to the catalogue and store.");
     await refresh();
   };
 
   const editProduct = (product: CatalogProduct) => {
     setEditingId(product.id);
-    setForm({ name: product.name, category: product.category, price: String(product.price), compareAtPrice: product.compareAtPrice ? String(product.compareAtPrice) : "", stock: String(product.stock), badge: product.badge || "", visual: product.visual, description: product.description, imageUrl: product.imageUrl || "", imagePath: product.imagePath || "" });
+    setForm({ name: product.name, category: product.category, price: String(product.price), compareAtPrice: product.compareAtPrice ? String(product.compareAtPrice) : "", stock: String(product.stock), badge: product.badge || "", description: product.description, imageUrl: product.imageUrl || "", imagePath: product.imagePath || "" });
     setImagePreview(product.imageUrl || "");
+    setIsAddProductModalOpen(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -169,7 +172,7 @@ export default function AdminPortal({ initialProducts }: { initialProducts: Cata
         <section className="admin-workspace min-w-0 flex-1 p-5 md:p-8 lg:p-10 xl:p-12"><header className="admin-workspace-header flex flex-col justify-between gap-5 border-b border-[#e1e5ea] pb-7 sm:flex-row sm:items-start"><div><p className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-[#555f6d]"><span className="h-px w-7 bg-[#e00000]" />Camelion / Operations</p><h1 className="mt-4 max-w-5xl text-3xl font-black tracking-[-0.04em] md:text-5xl">{tab === "overview" ? `${getGreeting(currentDate)}, Sam.` : nav.find(([id]) => id === tab)?.[1]}</h1><p className="mt-2 text-sm text-[#7b8490]">{tab === "overview" ? "Here’s what’s happening with your store today." : "Keep your store operations moving."}</p></div><div className="text-left text-xs text-[#7b8490] sm:text-right"><p>{currentDate.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</p><p className="mt-2 font-semibold text-[#111]">Store status: <span className="text-[#e00000]">Live</span><span className="ml-1 inline-block h-1.5 w-1.5 rounded-full bg-[#1aa875]" /></p></div></header>
           {notice && <div className="mt-6 flex items-center justify-between border border-[#e000000]/20 bg-white px-4 py-3 text-sm"><span>{notice}</span><button onClick={() => setNotice("")} className="font-bold text-[#e00000]" aria-label="Dismiss notification">×</button></div>}
           {tab === "overview" && <Overview products={products} orders={orders} setTab={setTab} />}
-          {tab === "catalogue" && <Catalogue products={products} form={form} editingId={editingId} imagePreview={imagePreview} updateForm={updateForm} submitProduct={submitProduct} editProduct={editProduct} toggleProduct={toggleProduct} removeProduct={removeProduct} cancelEdit={() => { setEditingId(null); setForm(emptyForm); setImageFile(null); setImagePreview(""); }} onImageChange={(file) => { if (file.size > 4 * 1024 * 1024) { setNotice("Images must be 4MB or smaller."); return; } setImageFile(file); setImagePreview(URL.createObjectURL(file)); }} />}
+          {tab === "catalogue" && <Catalogue products={products} form={form} editingId={editingId} imagePreview={imagePreview} updateForm={updateForm} submitProduct={submitProduct} editProduct={editProduct} toggleProduct={toggleProduct} removeProduct={removeProduct} cancelEdit={() => { setEditingId(null); setForm(emptyForm); setImageFile(null); setImagePreview(""); setIsAddProductModalOpen(false); }} onImageChange={(file) => { if (file.size > 4 * 1024 * 1024) { setNotice("Images must be 4MB or smaller."); return; } setImageFile(file); setImagePreview(URL.createObjectURL(file)); }} isAddProductModalOpen={isAddProductModalOpen} setIsAddProductModalOpen={setIsAddProductModalOpen} />}
           {tab === "orders" && (orders.length > 0 ? <OrdersTable orders={orders} expandedOrderId={expandedOrderId} onExpand={setExpandedOrderId} onStatusChange={updateOrderStatus} /> : <p className="mt-8 border border-[#111]/15 bg-white p-8 text-center text-sm text-[#888]">No orders yet. Orders placed by customers at checkout will show up here.</p>)}
           {tab === "customers" && <DataTable title="Customers" columns={["Customer", "Email / phone", "Orders", "Lifetime value"]} rows={customers.map((customer) => [customer.name, customer.email || customer.phone || "No contact details", `${customer.orderCount} order${customer.orderCount === 1 ? "" : "s"}`, `PKR ${customer.lifetimeValue.toLocaleString()}`])} />}
         </section>
@@ -188,8 +191,95 @@ function Overview({ products, orders, setTab }: { products: CatalogProduct[]; or
   return <div className="mt-8"><div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">{[["Gross revenue", `PKR ${grossRevenue.toLocaleString()}`, `From last ${orders.length} order${orders.length === 1 ? "" : "s"}`], ["Orders this week", String(ordersThisWeek), `${orders.length} total loaded`], ["Active products", String(activeProducts), `${products.length} total records`], ["Low stock", String(lowStock).padStart(2, "0"), "Needs attention"]].map(([label, value, change]) => <div key={label} className="border border-[#111]/15 bg-white p-5"><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#888]">{label}</p><p className="mt-7 text-4xl font-black">{value}</p><p className="mt-3 text-xs font-bold text-[#e00000]">{change}</p></div>)}</div><div className="mt-8 grid gap-6 xl:grid-cols-[1.4fr_1fr]"><section className="border border-[#111]/15 bg-white"><div className="flex items-center justify-between border-b border-[#111]/10 p-5"><div><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#e00000]">Live feed</p><h2 className="mt-2 text-2xl font-black uppercase">Recent orders</h2></div><button onClick={() => setTab("orders")} className="text-xs font-bold uppercase tracking-wider text-[#e00000]">View all →</button></div>{orders.length > 0 ? <div className="divide-y divide-[#111]/10">{orders.slice(0, 3).map((order) => <div key={order.id} className="grid gap-2 px-5 py-5 text-sm sm:grid-cols-[1fr_1.4fr_1fr_1fr] sm:items-center"><span className="font-mono text-xs">#{order.orderNumber}</span><span>{order.customerName}</span><span>PKR {order.total.toLocaleString()}</span><span className="text-[10px] font-bold uppercase tracking-wider text-[#e00000]">{order.status.charAt(0) + order.status.slice(1).toLowerCase()}</span></div>)}</div> : <p className="p-5 text-sm text-[#888]">No orders yet.</p>}</section><section className="border border-[#111]/15 bg-[#111] p-6 text-white"><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#ff5757]">Catalogue health</p><h2 className="mt-3 text-2xl font-black uppercase">Keep the store moving.</h2><div className="mt-8 grid gap-4 text-sm"><button onClick={() => setTab("catalogue")} className="flex justify-between border-b border-white/15 pb-4 text-left"><span>Review low stock items</span><span className="text-[#ff5757]">{lowStock} →</span></button><button onClick={() => setTab("catalogue")} className="flex justify-between border-b border-white/15 pb-4 text-left"><span>Manage product catalogue</span><span className="text-[#ff5757]">{activeProducts} →</span></button><button onClick={() => setTab("customers")} className="flex justify-between text-left"><span>Review customer activity</span><span className="text-[#ff5757]">View →</span></button></div></section></div></div>;
 }
 
-function Catalogue({ products, form, editingId, imagePreview, updateForm, submitProduct, editProduct, toggleProduct, removeProduct, cancelEdit, onImageChange }: { products: CatalogProduct[]; form: typeof emptyForm; editingId: string | null; imagePreview: string; updateForm: (key: keyof typeof emptyForm, value: string) => void; submitProduct: (event: React.FormEvent) => void; editProduct: (product: CatalogProduct) => void; toggleProduct: (product: CatalogProduct) => void; removeProduct: (product: CatalogProduct) => void; cancelEdit: () => void; onImageChange: (file: File) => void }) {
-  return <div className="mt-8 grid gap-8 xl:grid-cols-[360px_1fr]"><form onSubmit={submitProduct} className="h-fit border border-[#111]/15 bg-white p-5"><div className="flex items-start justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#e00000]">{editingId ? "Edit record" : "New record"}</p><h2 className="mt-2 text-2xl font-black uppercase">{editingId ? "Update product" : "Add product"}</h2></div>{editingId && <button type="button" onClick={cancelEdit} className="text-xs font-bold text-[#888]">Cancel</button>}</div><div className="mt-6 grid gap-4"><label className="grid gap-2 text-[10px] font-bold uppercase tracking-wider text-[#666]">Product picture<input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => { const file = event.target.files?.[0]; if (file) onImageChange(file); }} className="border border-dashed border-[#111]/25 px-3 py-3 text-xs normal-case tracking-normal" />{imagePreview && <div role="img" aria-label="Product preview" className="mt-2 aspect-video w-full bg-[#f6f6f6] bg-contain bg-center bg-no-repeat" style={{ backgroundImage: `url(${imagePreview})` }} />}</label>{[["name", "Product name", "text"], ["price", "Price (PKR)", "number"], ["compareAtPrice", "Compare-at price", "number"], ["stock", "Stock units", "number"], ["badge", "Badge", "text"], ["description", "Description", "text"]].map(([key, label, type]) => <label key={key} className="grid gap-2 text-[10px] font-bold uppercase tracking-wider text-[#666]">{label}<input required={key === "name" || key === "price"} type={type} value={form[key as keyof typeof form]} onChange={(event) => updateForm(key as keyof typeof emptyForm, event.target.value)} className="border border-[#111]/20 px-3 py-3 text-sm font-normal normal-case tracking-normal text-[#111] outline-none focus:border-[#e00000]" /></label>)}<label className="grid gap-2 text-[10px] font-bold uppercase tracking-wider text-[#666]">Category<select value={form.category} onChange={(event) => updateForm("category", event.target.value)} className="border border-[#111]/20 bg-white px-3 py-3 text-sm font-normal normal-case tracking-normal text-[#111] outline-none focus:border-[#e00000]">{["Batteries", "Chargers", "Flashlights", "Extension Wires", "Portable Devices", "Bundles"].map((category) => <option key={category}>{category}</option>)}</select></label><label className="grid gap-2 text-[10px] font-bold uppercase tracking-wider text-[#666]">Product visual<select value={form.visual} onChange={(event) => updateForm("visual", event.target.value)} className="border border-[#111]/20 bg-white px-3 py-3 text-sm font-normal normal-case tracking-normal text-[#111] outline-none focus:border-[#e00000]">{["product-battery", "product-charger", "product-flashlight", "product-wire", "product-fan", "product-remote"].map((visual) => <option key={visual}>{visual}</option>)}</select></label></div><button className="mt-6 w-full bg-[#e00000] px-4 py-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-[#b80000]">{editingId ? "Save product changes" : "Add to catalogue"} →</button></form><section className="border border-[#111]/15 bg-white"><div className="flex flex-col justify-between gap-3 border-b border-[#111]/10 p-5 sm:flex-row sm:items-center"><div><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#e00000]">{products.length} records</p><h2 className="mt-2 text-2xl font-black uppercase">All products</h2></div><span className="text-xs text-[#888]">Changes publish to the store immediately</span></div><div className="divide-y divide-[#111]/10">{products.map((product) => <div key={product.id} className="grid gap-4 p-5 md:grid-cols-[64px_1fr_auto] md:items-center"><div className="product-visual h-16 w-16 rounded-lg border border-[#e5e5e5]">{product.imageUrl ? <div role="img" aria-label={`${product.name} product image`} className="h-full w-full bg-contain bg-center bg-no-repeat" style={{ backgroundImage: `url(${product.imageUrl})` }} /> : <div className={`${product.visual} product-fallback-visual scale-50`} />}</div><div><div className="flex flex-wrap items-center gap-2"><h3 className="font-bold">{product.name}</h3><span className={`px-2 py-1 text-[9px] font-bold uppercase tracking-wider ${product.active ? "bg-[#e00000] text-white" : "bg-[#111] text-white"}`}>{product.active ? "Live" : "Hidden"}</span></div><p className="mt-1 text-xs text-[#888]">{product.category} · Rs. {product.price.toLocaleString()} · <span className={product.stock < 10 ? "font-bold text-[#e00000]" : ""}>{product.stock} in stock</span></p></div><div className="flex flex-wrap gap-2 md:justify-end"><button onClick={() => editProduct(product)} className="border border-[#111]/20 px-3 py-2 text-[10px] font-bold uppercase tracking-wider hover:bg-[#111] hover:text-white">Edit</button><button onClick={() => toggleProduct(product)} className="border border-[#111]/20 px-3 py-2 text-[10px] font-bold uppercase tracking-wider hover:bg-[#111] hover:text-white">{product.active ? "Hide" : "Publish"}</button><button onClick={() => removeProduct(product)} className="border border-[#e00000]/30 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-[#e00000] hover:bg-[#e00000] hover:text-white">Delete</button></div></div>)}</div></section></div>;
+function Catalogue({ products, form, editingId, imagePreview, updateForm, submitProduct, editProduct, toggleProduct, removeProduct, cancelEdit, onImageChange, isAddProductModalOpen, setIsAddProductModalOpen }: { products: CatalogProduct[]; form: typeof emptyForm; editingId: string | null; imagePreview: string; updateForm: (key: keyof typeof emptyForm, value: string) => void; submitProduct: (event: React.FormEvent) => void; editProduct: (product: CatalogProduct) => void; toggleProduct: (product: CatalogProduct) => void; removeProduct: (product: CatalogProduct) => void; cancelEdit: () => void; onImageChange: (file: File) => void; isAddProductModalOpen: boolean; setIsAddProductModalOpen: (value: boolean) => void }) {
+  const closeProductModal = () => {
+    setIsAddProductModalOpen(false);
+    cancelEdit();
+  };
+
+  const productForm = (
+    <form onSubmit={submitProduct} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <label className="grid gap-2 text-[10px] font-bold uppercase tracking-wider text-[#666] sm:col-span-2">
+        Product picture
+        <input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => { const file = event.target.files?.[0]; if (file) onImageChange(file); }} className="rounded-lg border border-dashed border-[#111]/20 bg-[#f8f8f8] px-3 py-2.5 text-xs normal-case tracking-normal text-[#444]" />
+        {imagePreview && <img src={imagePreview} alt="Product preview" className="mt-1 aspect-video w-full rounded-lg border border-[#111]/10 bg-[#f6f6f6] object-contain" />}
+      </label>
+
+      {[["name", "Product name", "text"], ["price", "Price (PKR)", "number"], ["compareAtPrice", "Compare-at price", "number"], ["stock", "Stock units", "number"], ["badge", "Badge", "text"], ["description", "Description", "text"]].map(([key, label, type]) => (
+        <label key={key} className="grid gap-2 text-[10px] font-bold uppercase tracking-wider text-[#666]">
+          {label}
+          <input required={key === "name" || key === "price"} type={type} value={form[key as keyof typeof form]} onChange={(event) => updateForm(key as keyof typeof emptyForm, event.target.value)} className="rounded-lg border border-[#111]/15 bg-white px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-[#111] outline-none transition focus:border-[#e00000] focus:ring-2 focus:ring-[#e00000]/10" />
+        </label>
+      ))}
+
+      <label className="grid gap-2 text-[10px] font-bold uppercase tracking-wider text-[#666] sm:col-span-2">
+        Category
+        <select value={form.category} onChange={(event) => updateForm("category", event.target.value)} className="rounded-lg border border-[#111]/15 bg-white px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-[#111] outline-none transition focus:border-[#e00000] focus:ring-2 focus:ring-[#e00000]/10">
+          {["Batteries", "Chargers", "Flashlights", "Extension Wires", "Portable Devices", "Bundles"].map((category) => <option key={category}>{category}</option>)}
+        </select>
+      </label>
+
+      <button className="mt-2 w-full rounded-lg bg-[#e00000] px-4 py-3 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-[#b80000] sm:col-span-2">{editingId ? "Save product changes" : "Add to catalogue"} →</button>
+    </form>
+  );
+
+  return (
+    <>
+      <div className="mt-8">
+        <section className="catalogue-products border border-[#111]/15 bg-white">
+          <div className="flex flex-col justify-between gap-3 border-b border-[#111]/10 p-5 sm:flex-row sm:items-center">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#e00000]">{products.length} records</p>
+              <h2 className="mt-2 text-2xl font-black uppercase">All products</h2>
+            </div>
+            <button type="button" onClick={() => { if (editingId) cancelEdit(); setIsAddProductModalOpen(true); }} className="rounded-full bg-[#e00000] px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-white transition-colors hover:bg-[#b80000] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e00000]/30 focus-visible:ring-offset-2">Add Product</button>
+          </div>
+          <div className="divide-y divide-[#111]/10">
+            {products.map((product) => (
+              <div key={product.id} className="grid gap-4 p-5 transition-colors hover:bg-[#fafbfc] md:grid-cols-[64px_1fr_auto] md:items-center">
+                <div className="product-visual h-16 w-16 rounded-lg border border-[#e5e5e5]">
+                  {product.imageUrl ? <div role="img" aria-label={`${product.name} product image`} className="h-full w-full bg-contain bg-center bg-no-repeat" style={{ backgroundImage: `url(${product.imageUrl})` }} /> : <div className={`${product.visual} product-fallback-visual scale-50`} />}
+                </div>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="font-bold">{product.name}</h3>
+                    <span className={`rounded-full px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider ${product.active ? "bg-[#e00000] text-white" : "bg-[#111] text-white"}`}>{product.active ? "Live" : "Hidden"}</span>
+                  </div>
+                  <p className="mt-1 text-xs text-[#888]">{product.category} · Rs. {product.price.toLocaleString()} · <span className={product.stock < 10 ? "font-bold text-[#e00000]" : ""}>{product.stock} in stock</span></p>
+                </div>
+                <div className="flex flex-wrap gap-2 md:justify-end">
+                  <button onClick={() => editProduct(product)} className="rounded-full border border-[#111]/15 bg-white px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-[#111] transition-colors hover:bg-[#111] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111]/20 focus-visible:ring-offset-2">Edit</button>
+                  <button onClick={() => toggleProduct(product)} className="rounded-full border border-[#111]/15 bg-white px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-[#111] transition-colors hover:bg-[#111] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111]/20 focus-visible:ring-offset-2">{product.active ? "Hide" : "Publish"}</button>
+                  <button onClick={() => removeProduct(product)} className="rounded-full border border-[#e00000]/25 bg-white px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-[#e00000] transition-colors hover:bg-[#e00000] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e00000]/25 focus-visible:ring-offset-2">Delete</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      {isAddProductModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-[2px]" onClick={closeProductModal}>
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={editingId ? "Edit product" : "Add product"}
+            className="relative w-full max-w-[680px] overflow-hidden rounded-2xl border border-[#111]/10 bg-white shadow-[0_30px_90px_rgba(17,17,17,0.18)]"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-start justify-between border-b border-[#111]/10 px-5 py-4">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#e00000]">{editingId ? "Edit record" : "New record"}</p>
+                <h2 className="mt-1 text-xl font-black uppercase tracking-[-0.04em]">{editingId ? "Update product" : "Add product"}</h2>
+              </div>
+              <button type="button" aria-label="Close add product form" onClick={closeProductModal} className="flex h-8 w-8 items-center justify-center rounded-full text-xl text-[#666] transition hover:bg-[#111]/5 hover:text-[#111]">×</button>
+            </div>
+            <div className="max-h-[90vh] overflow-y-auto p-5">{productForm}</div>
+          </div>
+        </div>
+      )}
+    </>
+  );
 }
 
 function DataTable({ title, columns, rows }: { title: string; columns: string[]; rows: string[][] }) {

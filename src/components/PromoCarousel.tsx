@@ -1,14 +1,46 @@
 "use client";
 
-import { useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode, type TransitionEvent as ReactTransitionEvent } from "react";
 
 const slideCount = 3;
 
 export function PromoCarousel({ children }: { children: ReactNode }) {
-  const [activeSlide, setActiveSlide] = useState(0);
+  const [activeSlide, setActiveSlide] = useState(1);
+  const [transitionEnabled, setTransitionEnabled] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
   const pointerStart = useRef<{ x: number; y: number } | null>(null);
   const suppressClick = useRef(false);
+
+  const snapToRealSlide = useCallback((clonedSlide: number) => {
+    setTransitionEnabled(false);
+    setActiveSlide(clonedSlide === 0 ? slideCount : 1);
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => setTransitionEnabled(true));
+    });
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setActiveSlide((current) => Math.min(current + 1, slideCount + 1));
+    }, 3000);
+
+    return () => window.clearTimeout(timer);
+  }, [activeSlide]);
+
+  useEffect(() => {
+    if (activeSlide !== 0 && activeSlide !== slideCount + 1) return;
+    const timer = window.setTimeout(() => snapToRealSlide(activeSlide), 860);
+    return () => window.clearTimeout(timer);
+  }, [activeSlide, snapToRealSlide]);
+
+  const moveSlide = (direction: -1 | 1) => {
+    setActiveSlide((current) => Math.max(0, Math.min(slideCount + 1, current + direction)));
+  };
+
+  const handleTrackTransitionEnd = (event: ReactTransitionEvent<HTMLDivElement>) => {
+    if (event.propertyName !== "transform" || (activeSlide !== 0 && activeSlide !== slideCount + 1)) return;
+    snapToRealSlide(activeSlide);
+  };
 
   const handlePointerDown = (event: ReactPointerEvent<HTMLElement>) => {
     if (!event.isPrimary || event.button > 0 || (event.target instanceof HTMLElement && event.target.closest("button"))) return;
@@ -29,7 +61,7 @@ export function PromoCarousel({ children }: { children: ReactNode }) {
 
     if (Math.abs(deltaX) < 48 || Math.abs(deltaX) < Math.abs(deltaY)) return;
     suppressClick.current = true;
-    setActiveSlide((current) => Math.max(0, Math.min(slideCount - 1, current + (deltaX < 0 ? 1 : -1))));
+    moveSlide(deltaX < 0 ? 1 : -1);
   };
 
   const handlePointerCancel = () => {
@@ -50,10 +82,10 @@ export function PromoCarousel({ children }: { children: ReactNode }) {
     if (event.target !== event.currentTarget) return;
     if (event.key === "ArrowLeft") {
       event.preventDefault();
-      setActiveSlide((current) => Math.max(0, current - 1));
+      moveSlide(-1);
     } else if (event.key === "ArrowRight") {
       event.preventDefault();
-      setActiveSlide((current) => Math.min(slideCount - 1, current + 1));
+      moveSlide(1);
     }
   };
 
@@ -80,8 +112,12 @@ export function PromoCarousel({ children }: { children: ReactNode }) {
       <div className="promo-carousel__viewport">
         <div
           className="promo-carousel__track"
-          style={{ transform: `translateX(-${(activeSlide / slideCount) * 100}%)` }}
+          style={{ transform: `translateX(-${activeSlide * 20}%)`, transition: transitionEnabled ? undefined : "none" }}
+          onTransitionEnd={handleTrackTransitionEnd}
         >
+          <div className="promo-carousel__slide" aria-hidden="true" inert>
+            <div className="promo-carousel__placeholder-slide"><span>SLIDE 3 IMAGE</span></div>
+          </div>
           <div className="promo-carousel__slide" role="group" aria-roledescription="slide" aria-label="Slide 1 of 3">
             {children}
           </div>
@@ -93,14 +129,16 @@ export function PromoCarousel({ children }: { children: ReactNode }) {
           <div className="promo-carousel__slide" role="group" aria-roledescription="slide" aria-label="Slide 3 of 3">
             <div className="promo-carousel__placeholder-slide"><span>SLIDE 3 IMAGE</span></div>
           </div>
+          <div className="promo-carousel__slide" aria-hidden="true" inert>
+            {children}
+          </div>
         </div>
       </div>
       <button
         type="button"
         className="promo-carousel__control promo-carousel__control--previous"
         aria-label="Previous promotion"
-        disabled={activeSlide === 0}
-        onClick={() => setActiveSlide((current) => Math.max(0, current - 1))}
+        onClick={() => moveSlide(-1)}
       >
         ‹
       </button>
@@ -108,8 +146,7 @@ export function PromoCarousel({ children }: { children: ReactNode }) {
         type="button"
         className="promo-carousel__control promo-carousel__control--next"
         aria-label="Next promotion"
-        disabled={activeSlide === slideCount - 1}
-        onClick={() => setActiveSlide((current) => Math.min(slideCount - 1, current + 1))}
+        onClick={() => moveSlide(1)}
       >
         ›
       </button>
