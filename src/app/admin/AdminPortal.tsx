@@ -158,10 +158,23 @@ export default function AdminPortal({ initialProducts }: { initialProducts: Cata
   };
 
   const removeProduct = async (product: CatalogProduct) => {
-    if (!window.confirm(`Delete ${product.name}?`)) return;
-    await fetch("/api/admin/products", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: product.id }) });
-    setNotice("Product deleted from the catalogue.");
-    await refresh();
+    try {
+      const response = await fetch("/api/admin/products", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: product.id }) });
+      if (!response.ok) {
+        setNotice("The product could not be deleted.");
+        return false;
+      }
+      setNotice(`${product.name} was deleted from the catalogue.`);
+      try {
+        await refresh();
+      } catch {
+        setNotice(`${product.name} was deleted, but the catalogue could not refresh.`);
+      }
+      return true;
+    } catch {
+      setNotice("The product could not be deleted. Check your connection and try again.");
+      return false;
+    }
   };
 
   const nav = [["overview", "Overview"], ["catalogue", "Product catalogue"], ["orders", "Orders & purchases"], ["customers", "Customers"]] as const;
@@ -191,10 +204,31 @@ function Overview({ products, orders, setTab }: { products: CatalogProduct[]; or
   return <div className="mt-8"><div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">{[["Gross revenue", `PKR ${grossRevenue.toLocaleString()}`, `From last ${orders.length} order${orders.length === 1 ? "" : "s"}`], ["Orders this week", String(ordersThisWeek), `${orders.length} total loaded`], ["Active products", String(activeProducts), `${products.length} total records`], ["Low stock", String(lowStock).padStart(2, "0"), "Needs attention"]].map(([label, value, change]) => <div key={label} className="border border-[#111]/15 bg-white p-5"><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#888]">{label}</p><p className="mt-7 text-4xl font-black">{value}</p><p className="mt-3 text-xs font-bold text-[#e00000]">{change}</p></div>)}</div><div className="mt-8 grid gap-6 xl:grid-cols-[1.4fr_1fr]"><section className="border border-[#111]/15 bg-white"><div className="flex items-center justify-between border-b border-[#111]/10 p-5"><div><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#e00000]">Live feed</p><h2 className="mt-2 text-2xl font-black uppercase">Recent orders</h2></div><button onClick={() => setTab("orders")} className="text-xs font-bold uppercase tracking-wider text-[#e00000]">View all →</button></div>{orders.length > 0 ? <div className="divide-y divide-[#111]/10">{orders.slice(0, 3).map((order) => <div key={order.id} className="grid gap-2 px-5 py-5 text-sm sm:grid-cols-[1fr_1.4fr_1fr_1fr] sm:items-center"><span className="font-mono text-xs">#{order.orderNumber}</span><span>{order.customerName}</span><span>PKR {order.total.toLocaleString()}</span><span className="text-[10px] font-bold uppercase tracking-wider text-[#e00000]">{order.status.charAt(0) + order.status.slice(1).toLowerCase()}</span></div>)}</div> : <p className="p-5 text-sm text-[#888]">No orders yet.</p>}</section><section className="border border-[#111]/15 bg-[#111] p-6 text-white"><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#ff5757]">Catalogue health</p><h2 className="mt-3 text-2xl font-black uppercase">Keep the store moving.</h2><div className="mt-8 grid gap-4 text-sm"><button onClick={() => setTab("catalogue")} className="flex justify-between border-b border-white/15 pb-4 text-left"><span>Review low stock items</span><span className="text-[#ff5757]">{lowStock} →</span></button><button onClick={() => setTab("catalogue")} className="flex justify-between border-b border-white/15 pb-4 text-left"><span>Manage product catalogue</span><span className="text-[#ff5757]">{activeProducts} →</span></button><button onClick={() => setTab("customers")} className="flex justify-between text-left"><span>Review customer activity</span><span className="text-[#ff5757]">View →</span></button></div></section></div></div>;
 }
 
-function Catalogue({ products, form, editingId, imagePreview, updateForm, submitProduct, editProduct, toggleProduct, removeProduct, cancelEdit, onImageChange, isAddProductModalOpen, setIsAddProductModalOpen }: { products: CatalogProduct[]; form: typeof emptyForm; editingId: string | null; imagePreview: string; updateForm: (key: keyof typeof emptyForm, value: string) => void; submitProduct: (event: React.FormEvent) => void; editProduct: (product: CatalogProduct) => void; toggleProduct: (product: CatalogProduct) => void; removeProduct: (product: CatalogProduct) => void; cancelEdit: () => void; onImageChange: (file: File) => void; isAddProductModalOpen: boolean; setIsAddProductModalOpen: (value: boolean) => void }) {
+function Catalogue({ products, form, editingId, imagePreview, updateForm, submitProduct, editProduct, toggleProduct, removeProduct, cancelEdit, onImageChange, isAddProductModalOpen, setIsAddProductModalOpen }: { products: CatalogProduct[]; form: typeof emptyForm; editingId: string | null; imagePreview: string; updateForm: (key: keyof typeof emptyForm, value: string) => void; submitProduct: (event: React.FormEvent) => void; editProduct: (product: CatalogProduct) => void; toggleProduct: (product: CatalogProduct) => void; removeProduct: (product: CatalogProduct) => Promise<boolean>; cancelEdit: () => void; onImageChange: (file: File) => void; isAddProductModalOpen: boolean; setIsAddProductModalOpen: (value: boolean) => void }) {
+  const [productPendingDelete, setProductPendingDelete] = useState<CatalogProduct | null>(null);
+  const [isDeletingProduct, setIsDeletingProduct] = useState(false);
+  const cancelDeleteButtonRef = useRef<HTMLButtonElement>(null);
   const closeProductModal = () => {
     setIsAddProductModalOpen(false);
     cancelEdit();
+  };
+
+  useEffect(() => {
+    if (!productPendingDelete) return;
+    cancelDeleteButtonRef.current?.focus();
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !isDeletingProduct) setProductPendingDelete(null);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [productPendingDelete, isDeletingProduct]);
+
+  const confirmProductDeletion = async () => {
+    if (!productPendingDelete || isDeletingProduct) return;
+    setIsDeletingProduct(true);
+    const deleted = await removeProduct(productPendingDelete);
+    setIsDeletingProduct(false);
+    if (deleted) setProductPendingDelete(null);
   };
 
   const productForm = (
@@ -232,7 +266,7 @@ function Catalogue({ products, form, editingId, imagePreview, updateForm, submit
               <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#e00000]">{products.length} records</p>
               <h2 className="mt-2 text-2xl font-black uppercase">All products</h2>
             </div>
-            <button type="button" onClick={() => { if (editingId) cancelEdit(); setIsAddProductModalOpen(true); }} className="rounded-full bg-[#e00000] px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-white transition-colors hover:bg-[#b80000] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e00000]/30 focus-visible:ring-offset-2">Add Product</button>
+            <button type="button" onClick={() => { if (editingId) cancelEdit(); setIsAddProductModalOpen(true); }} className="rounded-none border-2 border-[#111] bg-[#e00000] px-5 py-2.5 text-[10px] font-black uppercase tracking-[0.14em] text-white shadow-[3px_3px_0_#111] transition-[background-color,transform,box-shadow] hover:bg-[#b80000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e00000]/30 focus-visible:ring-offset-2">Add Product</button>
           </div>
           <div className="divide-y divide-[#111]/10">
             {products.map((product) => (
@@ -248,15 +282,50 @@ function Catalogue({ products, form, editingId, imagePreview, updateForm, submit
                   <p className="mt-1 text-xs text-[#888]">{product.category} · Rs. {product.price.toLocaleString()} · <span className={product.stock < 10 ? "font-bold text-[#e00000]" : ""}>{product.stock} in stock</span></p>
                 </div>
                 <div className="flex flex-wrap gap-2 md:justify-end">
-                  <button onClick={() => editProduct(product)} className="rounded-full border border-[#111]/15 bg-white px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-[#111] transition-colors hover:bg-[#111] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111]/20 focus-visible:ring-offset-2">Edit</button>
-                  <button onClick={() => toggleProduct(product)} className="rounded-full border border-[#111]/15 bg-white px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-[#111] transition-colors hover:bg-[#111] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111]/20 focus-visible:ring-offset-2">{product.active ? "Hide" : "Publish"}</button>
-                  <button onClick={() => removeProduct(product)} className="rounded-full border border-[#e00000]/25 bg-white px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-[#e00000] transition-colors hover:bg-[#e00000] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e00000]/25 focus-visible:ring-offset-2">Delete</button>
+                  <button onClick={() => editProduct(product)} className="rounded-full border border-red-300 bg-white px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-red-500 transition-colors hover:bg-red-500 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/25 focus-visible:ring-offset-2">Edit</button>
+                  <button onClick={() => toggleProduct(product)} className="rounded-full border border-red-300 bg-white px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-red-500 transition-colors hover:bg-red-500 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/25 focus-visible:ring-offset-2">{product.active ? "Hide" : "Publish"}</button>
+                  <button onClick={() => setProductPendingDelete(product)} className="rounded-full border border-red-300 bg-white px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-red-500 transition-colors hover:bg-red-500 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/25 focus-visible:ring-offset-2">Delete</button>
                 </div>
               </div>
             ))}
           </div>
         </section>
       </div>
+
+      {productPendingDelete && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4 backdrop-blur-[2px]" onClick={() => { if (!isDeletingProduct) setProductPendingDelete(null); }}>
+          <div
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="delete-product-title"
+            aria-describedby="delete-product-description"
+            className="w-full max-w-[440px] overflow-hidden border-2 border-[#111] bg-white shadow-[6px_6px_0_#111]"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="h-1.5 bg-[#e00000]" />
+            <div className="p-5 sm:p-6">
+              <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#e00000]">Catalogue removal</p>
+              <h2 id="delete-product-title" className="mt-2 text-2xl font-black uppercase">Delete product?</h2>
+              <p id="delete-product-description" className="mt-2 text-sm leading-6 text-[#666]">This permanently removes the product from your catalogue and storefront.</p>
+
+              <div className="mt-5 flex items-center gap-3 border border-[#111]/10 bg-[#f7f8fa] p-3">
+                <div className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden border border-[#111]/10 bg-white text-xl font-black uppercase text-[#111]">
+                  {productPendingDelete.imageUrl ? <img src={productPendingDelete.imageUrl} alt="" className="h-full w-full object-contain" /> : productPendingDelete.name.slice(0, 1)}
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-bold text-[#111]">{productPendingDelete.name}</p>
+                  <p className="mt-1 text-xs text-[#666]">{productPendingDelete.category} · Rs. {productPendingDelete.price.toLocaleString()}</p>
+                </div>
+              </div>
+
+              <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                <button ref={cancelDeleteButtonRef} type="button" disabled={isDeletingProduct} onClick={() => setProductPendingDelete(null)} className="min-h-11 border border-[#111]/20 px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#111] transition-colors hover:bg-[#f2f2f2] disabled:cursor-wait disabled:opacity-60">Keep product</button>
+                <button type="button" disabled={isDeletingProduct} onClick={confirmProductDeletion} className="min-h-11 border-2 border-[#111] bg-[#e00000] px-4 py-2 text-xs font-black uppercase tracking-wider text-white shadow-[3px_3px_0_#111] transition-[background-color,transform,box-shadow] hover:bg-[#b80000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:cursor-wait disabled:opacity-70">{isDeletingProduct ? "Deleting..." : "Delete product"}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {isAddProductModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-[2px]" onClick={closeProductModal}>
