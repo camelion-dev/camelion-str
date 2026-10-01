@@ -188,6 +188,79 @@ footer a {
   margin-inline: auto;
 }
 
+.promo-collage {
+  margin-top: -2.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.promo-collage__grid {
+  display: grid;
+  grid-template-areas:
+    "batteries chargers extension flashlights"
+    "portable chargers bundles bundles";
+  grid-template-columns: 1.25fr repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  aspect-ratio: 2.17 / 1;
+}
+
+.promo-collage__tile {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #f6f6f6;
+  box-shadow: 0 5px 18px rgb(0 0 0 / 4%);
+  transition: background-color 180ms ease, box-shadow 180ms ease;
+}
+
+.promo-collage__tile:hover {
+  background: #f2f2f2;
+  box-shadow: 0 8px 22px rgb(0 0 0 / 7%);
+}
+
+.promo-collage__tile--batteries { grid-area: batteries; }
+.promo-collage__tile--portable { grid-area: portable; }
+.promo-collage__tile--chargers { grid-area: chargers; }
+.promo-collage__tile--extension { grid-area: extension; }
+.promo-collage__tile--flashlights { grid-area: flashlights; }
+.promo-collage__tile--bundles { grid-area: bundles; }
+
+.promo-collage__placeholder {
+  padding: 12px;
+  color: #777;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+@media (max-width: 1023px) {
+  .promo-collage__grid {
+    grid-template-areas:
+      "batteries chargers"
+      "portable chargers"
+      "extension flashlights"
+      "bundles bundles";
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(3, clamp(160px, calc(42.5vw - 24px), 380px)) auto;
+    aspect-ratio: auto;
+  }
+
+  .promo-collage__tile--bundles {
+    aspect-ratio: 1.9 / 1;
+  }
+}
+
+@media (max-width: 639px) {
+  .promo-collage__grid {
+    gap: 12px;
+    grid-template-rows: repeat(3, clamp(128px, calc(38vw - 15px), 240px)) auto;
+  }
+}
+
 .hero-split::after {
   content: "";
   position: absolute;
