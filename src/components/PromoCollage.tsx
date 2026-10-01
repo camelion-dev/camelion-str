@@ -11,7 +11,7 @@ const promoTiles = [
 
 export function PromoCollage() {
   return (
-    <section aria-label="Shop by collection" className="promo-collage section-shell">
+    <section aria-label="Shop by collection" className="promo-collage">
       <div className="promo-collage__grid">
         {promoTiles.map(({ name, area }) => (
           <Link
