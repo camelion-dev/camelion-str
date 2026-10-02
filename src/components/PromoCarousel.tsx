@@ -116,7 +116,9 @@ export function PromoCarousel({ children }: { children: ReactNode }) {
           onTransitionEnd={handleTrackTransitionEnd}
         >
           <div className="promo-carousel__slide" aria-hidden="true" inert>
-            <div className="promo-carousel__placeholder-slide"><span>SLIDE 3 IMAGE</span></div>
+            <div className="promo-carousel__image-slide">
+              <img src="/assets/slide3.png" alt="" />
+            </div>
           </div>
           <div className="promo-carousel__slide" role="group" aria-roledescription="slide" aria-label="Slide 1 of 3">
             {children}
@@ -127,7 +129,9 @@ export function PromoCarousel({ children }: { children: ReactNode }) {
             </div>
           </div>
           <div className="promo-carousel__slide" role="group" aria-roledescription="slide" aria-label="Slide 3 of 3">
-            <div className="promo-carousel__placeholder-slide"><span>SLIDE 3 IMAGE</span></div>
+            <div className="promo-carousel__image-slide">
+              <img src="/assets/slide3.png" alt="Camelion promotional banner" />
+            </div>
           </div>
           <div className="promo-carousel__slide" aria-hidden="true" inert>
             {children}
