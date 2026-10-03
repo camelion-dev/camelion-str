@@ -526,10 +526,12 @@ footer a {
 }
 
 .collection-category-title {
-  overflow-wrap: anywhere;
-  font-size: clamp(0.72rem, 3.2vw, 0.875rem);
+  overflow-wrap: normal;
+  white-space: nowrap;
+  font-size: clamp(0.625rem, 1vw, 0.75rem);
+  font-weight: 500;
   line-height: 1.2;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
 }
 
 .catalogue-product-grid,
@@ -810,6 +812,11 @@ footer a {
   overflow: hidden;
   background: var(--soft-gray);
   aspect-ratio: 1 / 0.86;
+}
+
+.collection-visual.product-visual {
+  aspect-ratio: 1.4 / 1;
+  background: transparent;
 }
 
 .product-visual::after {
