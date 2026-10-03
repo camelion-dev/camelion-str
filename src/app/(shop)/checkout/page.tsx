@@ -225,7 +225,7 @@ export default function CheckoutPage() {
           <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">Order summary</h2>
           <div className="mt-4 space-y-3 text-sm">
             {lines.map(({ item, product }) => (
-              <div key={item.productId} className="flex justify-between gap-3"><span className="text-[var(--body-gray)]">{product.name} × {item.quantity}</span><span className="shrink-0 font-semibold">Rs. {(product.price * item.quantity).toLocaleString()}</span></div>
+              <div key={item.productId} className="flex justify-between gap-3"><span className="min-w-0 break-words text-[var(--body-gray)]">{product.name} × {item.quantity}</span><span className="shrink-0 font-semibold">Rs. {(product.price * item.quantity).toLocaleString()}</span></div>
             ))}
           </div>
           <div className="mt-4 space-y-2 border-t border-[var(--border)] pt-4 text-sm">

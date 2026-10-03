@@ -68,10 +68,10 @@ export function ProductDetails({ product }: { product: CatalogProduct }) {
       </div>
 
       {/* Product info */}
-      <div>
+      <div className="min-w-0">
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--red)]">{product.category}</p>
         <div className="mt-2 flex items-start justify-between gap-4">
-          <h1 className="text-3xl font-black uppercase tracking-[-0.03em] md:text-4xl">{product.name}</h1>
+          <h1 className="min-w-0 break-words text-3xl font-black uppercase tracking-[-0.03em] md:text-4xl">{product.name}</h1>
           <button
             type="button"
             onClick={() => toggleFavorite(product.id)}
@@ -85,7 +85,7 @@ export function ProductDetails({ product }: { product: CatalogProduct }) {
 
         {product.badge && <span className={`mt-3 inline-block px-2 py-1 text-xs font-bold uppercase tracking-wider ${product.badge.startsWith("SAVE") ? "bg-[var(--red)] text-white" : "bg-[var(--foreground)] text-white"}`}>{product.badge}</span>}
 
-        <div className="mt-5 flex items-end gap-3">
+        <div className="mt-5 flex flex-wrap items-end gap-x-3 gap-y-1">
           <p className="text-3xl font-black">Rs. {product.price.toLocaleString()}</p>
           {product.compareAtPrice && <p className="text-lg text-[var(--muted)] line-through">Rs. {product.compareAtPrice.toLocaleString()}</p>}
           {discountPercent !== null && <span className="mb-1 text-sm font-bold text-[var(--red)]">Save {discountPercent}%</span>}

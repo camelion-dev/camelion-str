@@ -37,7 +37,7 @@ export function ProductCard({ product, compact = false, plain = false, marquee =
         <button
           type="button"
           onClick={handleFavoriteClick}
-          className={`absolute right-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full text-lg shadow-sm transition-colors ${favorited ? "bg-[var(--red)] text-white" : "bg-white hover:bg-[var(--red)] hover:text-white"}`}
+          className={`product-card-favorite absolute right-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full text-lg shadow-sm transition-colors ${favorited ? "bg-[var(--red)] text-white" : "bg-white hover:bg-[var(--red)] hover:text-white"}`}
           aria-label={favorited ? `Remove ${name} from favorites` : `Add ${name} to favorites`}
           aria-pressed={favorited}
         >

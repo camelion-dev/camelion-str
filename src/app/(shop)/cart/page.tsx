@@ -111,23 +111,23 @@ export default function CartPage() {
                 <Link href={`/products/${product.slug}`} className="product-visual h-24 w-24 shrink-0 overflow-hidden rounded-xl border border-[var(--border)]">
                   {product.imageUrl ? <div role="img" aria-label={product.name} className="absolute inset-0 bg-contain bg-center bg-no-repeat" style={{ backgroundImage: `url(${product.imageUrl})` }} /> : <div className={`${product.visual} product-fallback-visual`} />}
                 </Link>
-                <div className="flex flex-1 flex-col justify-between">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <Link href={`/products/${product.slug}`} className="text-sm font-bold uppercase tracking-wide hover:text-[var(--red)]">{product.name}</Link>
+                <div className="flex min-w-0 flex-1 flex-col justify-between">
+                  <div className="flex min-w-0 items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <Link href={`/products/${product.slug}`} className="break-words text-sm font-bold uppercase tracking-wide hover:text-[var(--red)]">{product.name}</Link>
                       <p className="mt-1 text-sm text-[var(--body-gray)]">Rs. {product.price.toLocaleString()}</p>
                       {unavailable && <p className="mt-1 text-xs font-bold uppercase tracking-wider text-[var(--red)]">Currently unavailable</p>}
                       {exceedsStock && <p className="mt-1 text-xs font-bold uppercase tracking-wider text-[var(--red)]">Only {product.stock} left — please lower the quantity</p>}
                     </div>
                     <button type="button" onClick={() => removeItem(item.productId)} className="text-xs font-bold uppercase tracking-wider text-[var(--muted)] hover:text-[var(--red)]">Remove</button>
                   </div>
-                  <div className="mt-3 flex items-center justify-between gap-3">
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
                     <div className="inline-flex items-center rounded-xl border border-[var(--foreground)]">
-                      <button type="button" onClick={() => setQuantity(item.productId, item.quantity - 1, product.stock)} aria-label={`Decrease quantity of ${product.name}`} className="flex h-9 w-9 items-center justify-center text-base font-bold">−</button>
-                      <span className="flex h-9 w-9 items-center justify-center text-sm font-bold">{item.quantity}</span>
-                      <button type="button" onClick={() => setQuantity(item.productId, item.quantity + 1, product.stock)} disabled={unavailable || item.quantity >= product.stock} aria-label={`Increase quantity of ${product.name}`} className="flex h-9 w-9 items-center justify-center text-base font-bold disabled:text-[var(--muted)]">+</button>
+                      <button type="button" onClick={() => setQuantity(item.productId, item.quantity - 1, product.stock)} aria-label={`Decrease quantity of ${product.name}`} className="flex h-11 w-11 items-center justify-center text-base font-bold">−</button>
+                      <span className="flex h-11 w-11 items-center justify-center text-sm font-bold">{item.quantity}</span>
+                      <button type="button" onClick={() => setQuantity(item.productId, item.quantity + 1, product.stock)} disabled={unavailable || item.quantity >= product.stock} aria-label={`Increase quantity of ${product.name}`} className="flex h-11 w-11 items-center justify-center text-base font-bold disabled:text-[var(--muted)]">+</button>
                     </div>
-                    <p className="text-sm font-bold">Subtotal: Rs. {(product.price * item.quantity).toLocaleString()}</p>
+                    <p className="w-full text-right text-sm font-bold sm:w-auto">Subtotal: Rs. {(product.price * item.quantity).toLocaleString()}</p>
                   </div>
                 </div>
               </div>
