@@ -1,25 +1,89 @@
 import Link from "next/link";
 
+const shopCategories = ["Batteries", "Chargers", "Extension Wires", "Flashlights", "Portable Devices", "Bundles"];
+
 export function SiteFooter() {
+  const year = new Date().getFullYear();
+
   return (
-    <footer className="site-footer border-t border-[var(--border)] bg-white py-10 text-[var(--foreground)]">
-      <div className="site-footer-grid section-shell grid gap-8 md:grid-cols-[1.4fr_1fr_1.4fr]">
-        <div>
-          <h2 className="site-footer-heading">About us</h2>
-          <p className="site-footer-copy mt-5 max-w-xs text-[10px] leading-5 text-[var(--body-gray)]">Camelion has been specializing in the R&amp;D, energy solutions including primary batteries, rechargeable batteries, lighting as well as other power related products.</p>
-          <div className="site-footer-social mt-4 flex gap-3 text-xs"><span aria-label="Facebook">f</span><span aria-label="Instagram">◎</span></div>
+    <footer className="site-footer">
+      <section className="site-footer-signup-band" aria-label="Newsletter">
+        <h2 className="site-footer-signup-title">Stay powered with Camelion</h2>
+        <div className="site-footer-signup-pill">
+          <input type="email" aria-label="Email address" placeholder="Enter your email address" />
+          <button type="button">Subscribe</button>
         </div>
-        <div>
-          <h2 className="site-footer-heading">Quick Links</h2>
-          <div className="site-footer-links mt-5 grid gap-3 text-[10px] text-[var(--body-gray)]"><Link href="/">About us</Link><Link href="/delivery">Delivery Policy</Link><Link href="/returns">Privacy Policy</Link><Link href="/returns">Return Policy</Link><Link href="/">Compare</Link><Link href="/contact">Contact</Link></div>
+      </section>
+
+      <div className="site-footer-main">
+        <div className="section-shell">
+          <div className="site-footer-columns">
+            <div className="site-footer-brand-column">
+              <Link href="/" className="site-footer-brand">CAMELION<span aria-hidden="true">.</span></Link>
+              <p className="site-footer-about">
+                Camelion brings practical energy solutions for everyday life, from batteries and lighting to chargers and power accessories.
+              </p>
+              <Link href="/#collection" className="site-footer-read-more">Explore Camelion <span aria-hidden="true">→</span></Link>
+            </div>
+
+            <nav aria-label="Discover Camelion">
+              <h2 className="site-footer-column-title">Discover</h2>
+              <div className="site-footer-links">
+                <Link href="/#all-products">Shop all products</Link>
+                {shopCategories.map((category) => (
+                  <Link key={category} href={`/?category=${encodeURIComponent(category)}#all-products`}>{category}</Link>
+                ))}
+              </div>
+            </nav>
+
+            <nav aria-label="About Camelion">
+              <h2 className="site-footer-column-title">About</h2>
+              <div className="site-footer-links">
+                <Link href="/#collection">Our collections</Link>
+                <Link href="/contact">Contact Camelion</Link>
+                <Link href="/account">My account</Link>
+              </div>
+            </nav>
+
+            <nav aria-label="Customer resources">
+              <h2 className="site-footer-column-title">Resources</h2>
+              <div className="site-footer-links">
+                <Link href="/delivery">Delivery policy</Link>
+                <Link href="/returns">Returns &amp; exchanges</Link>
+                <Link href="/contact">Customer support</Link>
+              </div>
+            </nav>
+
+            <nav aria-label="Your Camelion account">
+              <h2 className="site-footer-column-title">Your account</h2>
+              <div className="site-footer-links">
+                <Link href="/account">Sign in</Link>
+                <Link href="/favorites">Wishlist</Link>
+                <Link href="/cart">Shopping cart</Link>
+              </div>
+            </nav>
+          </div>
+
+          <div className="site-footer-promises">
+            <span className="site-footer-promises-label">Shop with confidence</span>
+            <span><i aria-hidden="true" />Free delivery over Rs. 5,000</span>
+            <span><i aria-hidden="true" />Cash on delivery</span>
+            <span><i aria-hidden="true" />30-day return support</span>
+            <Link href="/#all-products">Shop now <span aria-hidden="true">→</span></Link>
+          </div>
+
+          <div className="site-footer-legal">
+            <span className="site-footer-camelion-copyright">© {year} Camelion. All rights reserved.</span>
+            <span className="site-footer-khushu-copyright">
+              © {year} <a href="https://khushu.tech">Khushu Agency</a>. All rights reserved.
+            </span>
+            <nav className="site-footer-legal-links" aria-label="Footer links">
+              <Link href="/delivery">Delivery</Link>
+              <Link href="/returns">Returns</Link>
+              <Link href="/contact">Contact</Link>
+            </nav>
+          </div>
         </div>
-        <div>
-          <h2 className="site-footer-heading">Newsletter</h2>
-          <div className="site-footer-newsletter mt-5 flex items-center rounded-lg border border-[var(--border)] px-3 py-2"><span className="mr-2 text-sm text-[var(--body-gray)]">✉</span><input className="min-w-0 flex-1 bg-transparent text-[10px] outline-none placeholder:text-[var(--muted)]" placeholder="Enter your email" aria-label="Email for newsletter" /><button className="text-sm text-[var(--body-gray)]" aria-label="Subscribe to newsletter">→</button></div>
-        </div>
-      </div>
-      <div className="site-footer-bottom section-shell mt-10 border-t border-[var(--border)] pt-4 text-[10px] text-[var(--muted)]">
-        <span>© 2026 All rights reserved</span>
       </div>
     </footer>
   );
