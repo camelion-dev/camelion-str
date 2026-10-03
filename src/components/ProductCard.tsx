@@ -66,9 +66,8 @@ export function ProductCard({ product, compact = false, plain = false, marquee =
           </button>}
         </div>
         <div className={`product-card-details z-10 px-0 py-3 ${plain ? "plain-card-details bg-white text-[var(--foreground)]" : "bg-[var(--red)] text-white"} ${marquee ? "marquee-card-details" : ""}`}>
-          <p className={`product-card-brand ${plain ? "text-[9px] tracking-normal text-[var(--muted)]" : "text-white/65"}`}>Camelion</p>
-          <div className={`mt-1 ${plain ? "block" : "flex items-end justify-between gap-3"}`}>
-            <h3 className={`product-card-title line-clamp-2 ${plain ? "text-[13px] font-medium leading-[1.25]" : ""}`}>{name}</h3>
+          <div className={plain ? "block" : "flex items-end justify-between gap-3"}>
+            <h3 className="product-card-title min-w-0 flex-1 line-clamp-2">{name}</h3>
             <div className={`${plain ? "mt-1" : "shrink-0 text-right"} ${marquee ? "marquee-card-price" : ""}`}>
               <p className={`product-card-price ${plain ? "text-[10px] font-bold" : ""}`}>Rs. {price.toLocaleString()}</p>
               {compareAtPrice && <p className={`product-card-compare line-through ${plain ? "text-[var(--muted)]" : "text-white/65"}`}>Rs. {compareAtPrice.toLocaleString()}</p>}

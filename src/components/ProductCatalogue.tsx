@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import type { CatalogProduct } from "@/lib/catalog";
@@ -25,7 +25,10 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
   const [minPrice, setMinPrice] = useState(0);
   const [availability, setAvailability] = useState<AvailabilityOption>("all");
   const [currentPage, setCurrentPage] = useState(1);
+  const [recommendationMarquee, setRecommendationMarquee] = useState({ loopWidth: 0, copyCount: 2 });
   const catalogueRef = useRef<HTMLElement>(null);
+  const recommendationViewportRef = useRef<HTMLDivElement>(null);
+  const recommendationSetRef = useRef<HTMLDivElement>(null);
 
   const updateUrl = (key: "category" | "sort", value: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -50,6 +53,7 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PAGE_SIZE));
   const visibleProducts = filteredProducts.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
   const recommendations = products.filter((product) => !visibleProducts.some((visibleProduct) => visibleProduct.id === product.id)).slice(-5);
+  const recommendationCount = recommendations.length;
   const shopPromotions = [
     {
       eyebrow: "Better together",
@@ -89,6 +93,32 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
     setAvailability("all");
     setCurrentPage(1);
   };
+
+  useEffect(() => {
+    const viewport = recommendationViewportRef.current;
+    const firstSet = recommendationSetRef.current;
+    if (!viewport || !firstSet || recommendationCount === 0) return;
+
+    const measureMarquee = () => {
+      const loopWidth = firstSet.getBoundingClientRect().width;
+      const viewportWidth = viewport.getBoundingClientRect().width;
+      if (loopWidth <= 0 || viewportWidth <= 0) return;
+
+      // One set includes a trailing gap, so the next copy starts at this exact offset.
+      // Keep enough copies on the track to cover the viewport throughout each cycle.
+      const copyCount = Math.max(2, Math.ceil(viewportWidth / loopWidth) + 1);
+      setRecommendationMarquee((current) => (
+        Math.abs(current.loopWidth - loopWidth) < 0.5 && current.copyCount === copyCount
+          ? current
+          : { loopWidth, copyCount }
+      ));
+    };
+
+    const observer = new ResizeObserver(measureMarquee);
+    observer.observe(viewport);
+    observer.observe(firstSet);
+    return () => observer.disconnect();
+  }, [recommendationCount]);
 
   useEffect(() => {
     if (!catalogueRef.current) return;
@@ -134,11 +164,24 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
           </div>
           {recommendations.length > 0 && (<section className="mt-20 border-t border-[var(--border)] pt-12">
             <h2 className="text-center text-2xl font-bold tracking-[-0.04em]">You may also like</h2>
-            <div className="recommendation-marquee mt-10 overflow-hidden">
-              <div className="recommendation-marquee-track flex w-max gap-5">
-                {[...recommendations, ...recommendations].map((product, index) => (
-                  <div key={`${product.id}-${index}`} className="w-[190px] shrink-0 sm:w-[220px] lg:w-[240px]">
-                    <ProductCard product={product} plain marquee />
+            <div ref={recommendationViewportRef} className="recommendation-marquee mt-10 overflow-hidden">
+              <div
+                className="recommendation-marquee-track flex w-max"
+                data-loop-ready={recommendationMarquee.loopWidth > 0}
+                style={{ "--recommendation-loop-offset": `-${recommendationMarquee.loopWidth}px` } as CSSProperties}
+              >
+                {Array.from({ length: recommendationMarquee.copyCount }, (_, copyIndex) => (
+                  <div
+                    key={`recommendation-set-${copyIndex}`}
+                    ref={copyIndex === 0 ? recommendationSetRef : undefined}
+                    className="flex w-max shrink-0 gap-5 pr-5"
+                    aria-hidden={copyIndex > 0}
+                  >
+                    {recommendations.map((product) => (
+                      <div key={product.id} className="w-[190px] shrink-0 sm:w-[220px] lg:w-[240px]">
+                        <ProductCard product={product} plain marquee />
+                      </div>
+                    ))}
                   </div>
                 ))}
               </div>
