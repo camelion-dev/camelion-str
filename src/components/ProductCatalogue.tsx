@@ -164,7 +164,7 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
           </div>
           {recommendations.length > 0 && (<section className="mt-20 border-t border-[var(--border)] pt-12">
             <h2 className="text-center text-2xl font-bold tracking-[-0.04em]">You may also like</h2>
-            <div ref={recommendationViewportRef} className="recommendation-marquee mt-10 overflow-hidden">
+            <div ref={recommendationViewportRef} className="recommendation-marquee mt-10 overflow-hidden pb-8">
               <div
                 className="recommendation-marquee-track flex w-max"
                 data-loop-ready={recommendationMarquee.loopWidth > 0}
