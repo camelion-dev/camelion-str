@@ -59,7 +59,7 @@ export default function FavoritesPage() {
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--red)]">Saved for later</p>
         <h1 className="mt-2 text-3xl font-black uppercase tracking-[-0.03em]">Your favorites</h1>
       </div>
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="favorites-product-grid grid gap-4 sm:gap-5">
         {products.map((product) => <ProductCard key={product.id} product={product} />)}
       </div>
     </div>

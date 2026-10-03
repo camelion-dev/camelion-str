@@ -356,7 +356,7 @@ function Catalogue({ products, form, editingId, imagePreview, updateForm, submit
                 <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#e00000]">{editingId ? "Edit record" : "New record"}</p>
                 <h2 className="mt-1 text-xl font-black uppercase tracking-[-0.04em]">{editingId ? "Update product" : "Add product"}</h2>
               </div>
-              <button type="button" aria-label="Close add product form" onClick={closeProductModal} className="flex h-8 w-8 items-center justify-center rounded-full text-xl text-[#666] transition hover:bg-[#111]/5 hover:text-[#111]">×</button>
+              <button type="button" aria-label="Close add product form" onClick={closeProductModal} className="flex h-11 w-11 items-center justify-center rounded-full text-xl text-[#666] transition hover:bg-[#111]/5 hover:text-[#111]">×</button>
             </div>
             <div className="max-h-[90vh] overflow-y-auto p-5">{productForm}</div>
           </div>
