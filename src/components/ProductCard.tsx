@@ -33,7 +33,7 @@ export function ProductCard({ product, compact = false, plain = false, marquee =
   return (
     <article className={`group relative ${plain ? "glass-product-card" : ""} ${marquee ? "marquee-product-card" : ""} ${compact ? "" : "min-w-0"}`}>
       <div className={`product-card-visual product-visual isolate bg-white ${plain ? "plain-product-card rounded-[14px] border-0" : "aspect-[4/5] rounded-2xl border border-[var(--border)]"}`}>
-        {badge && <span className={`product-card-badge absolute left-3 top-3 z-10 px-2 py-1 ${badge.startsWith("SAVE") ? "bg-[var(--red)] text-white" : "bg-[var(--foreground)] text-white"}`}>{badge}</span>}
+        {badge && <span className="product-card-badge absolute left-3 top-3 z-10 px-2 py-1">{badge}</span>}
         <button
           type="button"
           onClick={handleFavoriteClick}

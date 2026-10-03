@@ -119,6 +119,11 @@ h6 { font-size: var(--font-size-base); }
   line-height: 1.25;
 }
 
+.product-card-badge {
+  background-color: var(--red);
+  color: #fff;
+}
+
 .product-card-badge,
 .product-card-brand {
   letter-spacing: 0.08em;
