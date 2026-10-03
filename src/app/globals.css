@@ -686,27 +686,9 @@ footer a {
   transform: scale(1.025);
 }
 
-@media (max-width: 1023px) {
-  .promo-collage__grid {
-    grid-template-areas:
-      "batteries chargers"
-      "portable chargers"
-      "extension flashlights"
-      "bundles bundles";
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-rows: repeat(3, clamp(160px, calc(42.5vw - 24px), 380px)) auto;
-    aspect-ratio: auto;
-  }
-
-  .promo-collage__tile--bundles {
-    aspect-ratio: 1.9 / 1;
-  }
-}
-
 @media (max-width: 639px) {
   .promo-collage__grid {
-    gap: 12px;
-    grid-template-rows: repeat(3, clamp(128px, calc(38vw - 15px), 240px)) auto;
+    gap: clamp(6px, 2vw, 12px);
   }
 
   .promo-carousel__control {
