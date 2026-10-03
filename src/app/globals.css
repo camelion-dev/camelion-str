@@ -251,7 +251,7 @@ h6 { font-size: var(--font-size-base); }
   place-items: center;
   border: 0;
   border-radius: 999px;
-  background: #151515;
+  background: var(--red);
   padding: 0;
   color: #fff;
   font-size: 1.35rem;
@@ -263,7 +263,7 @@ h6 { font-size: var(--font-size-base); }
 }
 
 .site-footer-contact-pill button:hover {
-  background: var(--red);
+  background: var(--red-dark);
 }
 
 .site-footer-contact-pill button:focus-visible {

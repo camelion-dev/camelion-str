@@ -73,7 +73,7 @@ export function SiteFooter() {
           <div className="site-footer-legal">
             <span className="site-footer-camelion-copyright">© {year} Camelion. All rights reserved.</span>
             <span className="site-footer-khushu-copyright">
-              Made by <a href="https://khushu.tech">Khushu Agency</a>. All rights reserved.
+              Made by <a href="https://khushu.tech">khushu.tech</a>. All rights reserved.
             </span>
             <nav className="site-footer-legal-links" aria-label="Footer links">
               <Link href="/delivery">Delivery</Link>
