@@ -189,7 +189,7 @@ h6 { font-size: var(--font-size-base); }
   color: #fff;
 }
 
-.site-footer-signup-band {
+.site-footer-contact-band {
   position: relative;
   display: grid;
   min-height: 320px;
@@ -199,7 +199,7 @@ h6 { font-size: var(--font-size-base); }
   color: var(--foreground);
 }
 
-.site-footer-signup-title {
+.site-footer-contact-title {
   margin: 0;
   font-size: clamp(1.875rem, 3.2vw, 2.5rem);
   font-weight: var(--font-weight-medium);
@@ -208,7 +208,7 @@ h6 { font-size: var(--font-size-base); }
   text-align: center;
 }
 
-.site-footer-signup-pill {
+.site-footer-contact-pill {
   position: absolute;
   z-index: 2;
   bottom: -1.75rem;
@@ -226,7 +226,7 @@ h6 { font-size: var(--font-size-base); }
   box-shadow: 0 10px 30px rgb(17 17 17 / 12%);
 }
 
-.site-footer-signup-pill input {
+.site-footer-contact-pill input {
   width: 100%;
   min-width: 0;
   height: 42px;
@@ -240,25 +240,38 @@ h6 { font-size: var(--font-size-base); }
   font-size: 0.875rem;
 }
 
-.site-footer-signup-pill input::placeholder {
+.site-footer-contact-pill input::placeholder {
   color: #888;
   opacity: 1;
 }
 
-.site-footer-signup-pill button {
+.site-footer-contact-pill button {
   min-height: 44px;
   height: 44px;
-  flex: 0 0 auto;
+  width: 44px;
+  flex: 0 0 44px;
+  display: grid;
+  place-items: center;
   border: 0;
   border-radius: 999px;
-  background: var(--red);
-  padding: 0 1.25rem;
+  background: #151515;
+  padding: 0;
   color: #fff;
-  font-size: 0.6875rem;
-  font-weight: var(--font-weight-bold);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  font-size: 1.35rem;
+  font-weight: var(--font-weight-regular);
+  line-height: 1;
   white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 160ms ease, transform 160ms ease;
+}
+
+.site-footer-contact-pill button:hover {
+  background: var(--red);
+}
+
+.site-footer-contact-pill button:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
 }
 
 .site-footer-main {
@@ -418,12 +431,12 @@ h6 { font-size: var(--font-size-base); }
 }
 
 @media (max-width: 640px) {
-  .site-footer-signup-band {
+  .site-footer-contact-band {
     min-height: 260px;
     padding-block: 4rem 5rem;
   }
 
-  .site-footer-signup-title {
+  .site-footer-contact-title {
     font-size: clamp(1.75rem, 7vw, 2.125rem);
   }
 

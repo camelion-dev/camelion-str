@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FooterContactForm } from "@/components/FooterContactForm";
 
 const shopCategories = ["Batteries", "Chargers", "Extension Wires", "Flashlights", "Portable Devices", "Bundles"];
 
@@ -7,12 +8,9 @@ export function SiteFooter() {
 
   return (
     <footer className="site-footer">
-      <section className="site-footer-signup-band" aria-label="Newsletter">
-        <h2 className="site-footer-signup-title">Stay powered with Camelion</h2>
-        <div className="site-footer-signup-pill">
-          <input type="email" aria-label="Email address" placeholder="Enter your email address" />
-          <button type="button">Subscribe</button>
-        </div>
+      <section className="site-footer-contact-band" aria-label="Contact Camelion">
+        <h2 className="site-footer-contact-title">Get in touch with Camelion</h2>
+        <FooterContactForm />
       </section>
 
       <div className="site-footer-main">
@@ -75,7 +73,7 @@ export function SiteFooter() {
           <div className="site-footer-legal">
             <span className="site-footer-camelion-copyright">© {year} Camelion. All rights reserved.</span>
             <span className="site-footer-khushu-copyright">
-              © {year} <a href="https://khushu.tech">Khushu Agency</a>. All rights reserved.
+              Made by <a href="https://khushu.tech">Khushu Agency</a>. All rights reserved.
             </span>
             <nav className="site-footer-legal-links" aria-label="Footer links">
               <Link href="/delivery">Delivery</Link>
