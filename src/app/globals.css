@@ -738,6 +738,14 @@ footer a {
   border-color: rgb(17 17 17 / 10%);
 }
 
+.admin-command-center .admin-workspace [class~="min-w-[760px]"] {
+  min-width: 960px;
+}
+
+.admin-command-center .admin-workspace [class~="grid-cols-[1fr_1.4fr_1fr_1fr_1.5fr]"] {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
 .admin-command-center .admin-workspace > .mt-8 > div > div,
 .admin-command-center .admin-workspace > .mt-8 > div > section,
 .admin-command-center .admin-workspace > .mt-8 > form,
