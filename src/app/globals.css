@@ -940,6 +940,10 @@ footer a {
 }
 
 @media (max-width: 767px) {
+  .promo-carousel {
+    margin-bottom: 1rem;
+  }
+
   .mobile-filter-backdrop {
     position: fixed;
     inset: 0;

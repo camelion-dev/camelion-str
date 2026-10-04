@@ -245,9 +245,9 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
 
   return (
     <>
-      <section id="all-products" ref={catalogueRef} className="catalogue-stage border-y border-[var(--border)] py-20 md:py-28">
+      <section id="all-products" ref={catalogueRef} className="catalogue-stage border-y border-[var(--border)] py-12 md:py-28">
         <div className="section-shell">
-          <div className="flex flex-col justify-between gap-8 border-b border-[var(--border)] pb-8 md:flex-row md:items-end">
+          <div className="flex flex-col justify-between gap-8 border-b border-[var(--border)] pb-6 md:flex-row md:items-end md:pb-8">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--red)]">The complete range</p>
               <div className="flex w-full items-center justify-between gap-3 md:w-auto md:justify-start">
@@ -273,7 +273,7 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
             <p className="hidden max-w-[15rem] text-right text-xs leading-5 text-[var(--body-gray)] md:block">{filteredProducts.length} products{searchTerm ? ` matching "${searchParams.get("search")}"` : ", selected for daily power and practical movement."}</p>
           </div>
           {mobileFilterDialogMounted && <button type="button" data-open={mobileFiltersOpen} aria-label="Close filters" onClick={closeMobileFilters} className="mobile-filter-backdrop" />}
-          <div className="mt-10 grid gap-8 lg:grid-cols-[200px_1fr]">
+          <div className="mt-6 grid gap-8 md:mt-10 lg:grid-cols-[200px_1fr]">
             <aside
               id="catalogue-filter-panel"
               ref={filterPanelRef}
