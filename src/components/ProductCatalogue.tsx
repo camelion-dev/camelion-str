@@ -248,26 +248,30 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
       <section id="all-products" ref={catalogueRef} className="catalogue-stage border-y border-[var(--border)] py-20 md:py-28">
         <div className="section-shell">
           <div className="flex flex-col justify-between gap-8 border-b border-[var(--border)] pb-8 md:flex-row md:items-end">
-            <div><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--red)]">The complete range</p><h2 className="mt-3 max-w-5xl text-4xl font-black uppercase leading-none tracking-[-0.06em] md:text-6xl">Shop All</h2></div>
-            <p className="max-w-[15rem] text-right text-xs leading-5 text-[var(--body-gray)]">{filteredProducts.length} products{searchTerm ? ` matching "${searchParams.get("search")}"` : ", selected for daily power and practical movement."}</p>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--red)]">The complete range</p>
+              <div className="flex w-full items-center justify-between gap-3 md:w-auto md:justify-start">
+                <h2 className="mt-3 max-w-5xl text-4xl font-black uppercase leading-none tracking-[-0.06em] md:text-6xl">Shop All</h2>
+                <button
+                  ref={mobileFilterButtonRef}
+                  type="button"
+                  aria-expanded={mobileFilterDialogMounted}
+                  aria-controls="catalogue-filter-panel"
+                  aria-label={`Open filters${activeFilterCount ? `, ${activeFilterCount} active` : ""}`}
+                  onClick={openMobileFilters}
+                  className="relative mt-2 inline-flex h-11 w-11 shrink-0 items-center justify-center border-0 bg-transparent p-0 text-[var(--red)] shadow-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--red)] md:hidden"
+                >
+                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" className="h-6 w-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 7h9M17 7h3M4 17h3m4 0h9" />
+                    <circle cx="15" cy="7" r="2" />
+                    <circle cx="9" cy="17" r="2" />
+                  </svg>
+                  {activeFilterCount > 0 && <span aria-hidden="true" className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[var(--red-dark)] ring-2 ring-white" />}
+                </button>
+              </div>
+            </div>
+            <p className="hidden max-w-[15rem] text-right text-xs leading-5 text-[var(--body-gray)] md:block">{filteredProducts.length} products{searchTerm ? ` matching "${searchParams.get("search")}"` : ", selected for daily power and practical movement."}</p>
           </div>
-          <button
-            ref={mobileFilterButtonRef}
-            type="button"
-            aria-expanded={mobileFilterDialogMounted}
-            aria-controls="catalogue-filter-panel"
-            aria-label={`Open filters${activeFilterCount ? `, ${activeFilterCount} active` : ""}`}
-            onClick={openMobileFilters}
-            className="mb-5 mt-6 flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-[var(--border)] bg-white px-4 text-sm font-semibold text-[var(--foreground)] shadow-[0_6px_18px_rgb(17_17_17_/_5%)] md:hidden"
-          >
-            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" className="h-5 w-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M4 7h9M17 7h3M4 17h3m4 0h9" />
-              <circle cx="15" cy="7" r="2" />
-              <circle cx="9" cy="17" r="2" />
-            </svg>
-            <span>Filter</span>
-            {activeFilterCount > 0 && <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-[var(--red)] px-1.5 text-xs font-bold text-white">{activeFilterCount}</span>}
-          </button>
           {mobileFilterDialogMounted && <button type="button" data-open={mobileFiltersOpen} aria-label="Close filters" onClick={closeMobileFilters} className="mobile-filter-backdrop" />}
           <div className="mt-10 grid gap-8 lg:grid-cols-[200px_1fr]">
             <aside
