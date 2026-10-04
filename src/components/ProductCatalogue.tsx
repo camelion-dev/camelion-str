@@ -1,13 +1,14 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import type { CatalogProduct } from "@/lib/catalog";
 import { ProductCard } from "@/components/ProductCard";
 
 const PAGE_SIZE = 12;
+const MOBILE_FILTER_TRANSITION_MS = 280;
 
 type SortOption = "featured" | "newest" | "price-low" | "price-high" | "name-az" | "name-za";
 type AvailabilityOption = "all" | "in-stock" | "out-of-stock";
@@ -25,8 +26,13 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
   const [minPrice, setMinPrice] = useState(0);
   const [availability, setAvailability] = useState<AvailabilityOption>("all");
   const [currentPage, setCurrentPage] = useState(1);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [mobileFilterDialogMounted, setMobileFilterDialogMounted] = useState(false);
   const [recommendationMarquee, setRecommendationMarquee] = useState({ loopWidth: 0, copyCount: 2 });
   const catalogueRef = useRef<HTMLElement>(null);
+  const filterPanelRef = useRef<HTMLElement>(null);
+  const mobileFilterButtonRef = useRef<HTMLButtonElement>(null);
+  const mobileFilterCloseTimerRef = useRef<number | null>(null);
   const recommendationViewportRef = useRef<HTMLDivElement>(null);
   const recommendationSetRef = useRef<HTMLDivElement>(null);
 
@@ -85,6 +91,27 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
     },
   ];
   const hasFilters = Boolean(searchTerm) || selectedCategory !== "all" || selectedSort !== "featured" || availability !== "all" || minPrice > 0 || maxPrice < maximumPrice;
+  const activeFilterCount = Number(selectedCategory !== "all")
+    + Number(availability !== "all")
+    + Number(minPrice > 0 || maxPrice < maximumPrice);
+
+  const closeMobileFilters = useCallback(() => {
+    setMobileFiltersOpen(false);
+    if (mobileFilterCloseTimerRef.current !== null) return;
+    mobileFilterCloseTimerRef.current = window.setTimeout(() => {
+      mobileFilterCloseTimerRef.current = null;
+      setMobileFilterDialogMounted(false);
+    }, MOBILE_FILTER_TRANSITION_MS);
+  }, []);
+
+  const openMobileFilters = useCallback(() => {
+    if (mobileFilterCloseTimerRef.current !== null) {
+      window.clearTimeout(mobileFilterCloseTimerRef.current);
+      mobileFilterCloseTimerRef.current = null;
+    }
+    setMobileFilterDialogMounted(true);
+    setMobileFiltersOpen(true);
+  }, []);
 
   const resetFilters = () => {
     router.replace("/#all-products", { scroll: false });
@@ -93,6 +120,81 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
     setAvailability("all");
     setCurrentPage(1);
   };
+
+  useEffect(() => {
+    if (!mobileFilterDialogMounted) return;
+
+    const mobileBreakpoint = window.matchMedia("(max-width: 767px)");
+    if (!mobileBreakpoint.matches) {
+      setMobileFiltersOpen(false);
+      setMobileFilterDialogMounted(false);
+      return;
+    }
+
+    const scrollY = window.scrollY;
+    const bodyStyle = {
+      position: document.body.style.position,
+      top: document.body.style.top,
+      width: document.body.style.width,
+      overflow: document.body.style.overflow,
+    };
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = "100%";
+    document.body.style.overflow = "hidden";
+
+    const panel = filterPanelRef.current;
+    const focusableSelector = 'button:not([disabled]), input:not([disabled]), select:not([disabled]), [href], [tabindex]:not([tabindex="-1"])';
+    window.requestAnimationFrame(() => panel?.querySelector<HTMLElement>("[data-mobile-filter-close]")?.focus({ preventScroll: true }));
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeMobileFilters();
+        return;
+      }
+      if (event.key !== "Tab" || !panel) return;
+
+      const focusableElements = Array.from(panel.querySelectorAll<HTMLElement>(focusableSelector));
+      if (!focusableElements.length) {
+        event.preventDefault();
+        return;
+      }
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+      if (event.shiftKey && (document.activeElement === firstElement || !panel.contains(document.activeElement))) {
+        event.preventDefault();
+        lastElement.focus();
+      } else if (!event.shiftKey && (document.activeElement === lastElement || !panel.contains(document.activeElement))) {
+        event.preventDefault();
+        firstElement.focus();
+      }
+    };
+
+    const handleBreakpointChange = (event: MediaQueryListEvent) => {
+      if (!event.matches) {
+        if (mobileFilterCloseTimerRef.current !== null) window.clearTimeout(mobileFilterCloseTimerRef.current);
+        mobileFilterCloseTimerRef.current = null;
+        setMobileFiltersOpen(false);
+        setMobileFilterDialogMounted(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    mobileBreakpoint.addEventListener("change", handleBreakpointChange);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      mobileBreakpoint.removeEventListener("change", handleBreakpointChange);
+      if (mobileFilterCloseTimerRef.current !== null) {
+        window.clearTimeout(mobileFilterCloseTimerRef.current);
+        mobileFilterCloseTimerRef.current = null;
+      }
+      Object.assign(document.body.style, bodyStyle);
+      window.scrollTo(0, scrollY);
+      window.requestAnimationFrame(() => mobileFilterButtonRef.current?.focus({ preventScroll: true }));
+    };
+  }, [closeMobileFilters, mobileFilterDialogMounted]);
 
   useEffect(() => {
     const viewport = recommendationViewportRef.current;
@@ -149,12 +251,49 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
             <div><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--red)]">The complete range</p><h2 className="mt-3 max-w-5xl text-4xl font-black uppercase leading-none tracking-[-0.06em] md:text-6xl">Shop All</h2></div>
             <p className="max-w-[15rem] text-right text-xs leading-5 text-[var(--body-gray)]">{filteredProducts.length} products{searchTerm ? ` matching "${searchParams.get("search")}"` : ", selected for daily power and practical movement."}</p>
           </div>
+          <button
+            ref={mobileFilterButtonRef}
+            type="button"
+            aria-expanded={mobileFilterDialogMounted}
+            aria-controls="catalogue-filter-panel"
+            aria-label={`Open filters${activeFilterCount ? `, ${activeFilterCount} active` : ""}`}
+            onClick={openMobileFilters}
+            className="mb-5 mt-6 flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-[var(--border)] bg-white px-4 text-sm font-semibold text-[var(--foreground)] shadow-[0_6px_18px_rgb(17_17_17_/_5%)] md:hidden"
+          >
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" className="h-5 w-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 7h9M17 7h3M4 17h3m4 0h9" />
+              <circle cx="15" cy="7" r="2" />
+              <circle cx="9" cy="17" r="2" />
+            </svg>
+            <span>Filter</span>
+            {activeFilterCount > 0 && <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-[var(--red)] px-1.5 text-xs font-bold text-white">{activeFilterCount}</span>}
+          </button>
+          {mobileFilterDialogMounted && <button type="button" data-open={mobileFiltersOpen} aria-label="Close filters" onClick={closeMobileFilters} className="mobile-filter-backdrop" />}
           <div className="mt-10 grid gap-8 lg:grid-cols-[200px_1fr]">
-            <aside className="glass-filter-panel h-fit p-5 lg:sticky lg:top-6">
-              <div className="flex items-center justify-between"><h3 className="text-[11px] font-bold uppercase tracking-[0.16em]">Filter</h3>{hasFilters && <button onClick={resetFilters} className="text-[10px] font-bold uppercase tracking-wider text-[var(--red)]">Reset</button>}</div>
-              <div className="mt-6 border-t border-[var(--border)] pt-5"><label htmlFor="catalogue-category" className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--muted)]">Collection</label><select id="catalogue-category" value={selectedCategory} onChange={(event) => updateUrl("category", event.target.value)} className="catalogue-category-select mt-3 w-full appearance-none px-3 py-2 text-[11px] font-medium text-[var(--foreground)] outline-none transition duration-200 focus:border-[var(--red)] focus:ring-2 focus:ring-[var(--red)]/10"><option value="all">All products ({products.length})</option>{categories.map((category) => <option key={category} value={category}>{category} ({products.filter((product) => product.category === category).length})</option>)}</select></div>
-              <div className="mt-6 border-t border-[var(--border)] pt-5"><p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--muted)]">Availability</p><div className="mt-3 grid gap-3">{([{ value: "in-stock", label: "In stock", count: products.filter((product) => product.stock > 0).length }, { value: "out-of-stock", label: "Out of stock", count: products.filter((product) => product.stock <= 0).length }] as const).map((option) => <button key={option.value} onClick={() => { setAvailability(availability === option.value ? "all" : option.value); setCurrentPage(1); }} className={`flex items-center justify-between text-left text-[11px] ${availability === option.value ? "font-bold text-[var(--foreground)]" : "text-[var(--body-gray)] hover:text-[var(--red)]"}`}><span className="flex items-center gap-2"><span className={`h-3 w-3 border border-[var(--border)] ${availability === option.value ? "bg-[var(--red)]" : "bg-white/70"}`} />{option.label}</span><span className="text-[10px] text-[var(--muted)]">{option.count}</span></button>)}</div></div>
-              <div className="mt-6 border-t border-[var(--border)] pt-5"><div className="flex justify-between"><p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--muted)]">Price</p><span className="text-[10px] text-[var(--body-gray)]">Rs. {maxPrice.toLocaleString()}</span></div><input aria-label="Maximum price" type="range" min="0" max={maximumPrice} step="100" value={maxPrice} onChange={(event) => { setMaxPrice(Number(event.target.value)); setCurrentPage(1); }} className="mt-5 w-full accent-[var(--red)]" /><div className="mt-2 flex justify-between text-[10px] text-[var(--muted)]"><span>Rs. 0</span><span>Rs. {maximumPrice.toLocaleString()}</span></div></div>
+            <aside
+              id="catalogue-filter-panel"
+              ref={filterPanelRef}
+              data-open={mobileFiltersOpen}
+              role={mobileFilterDialogMounted ? "dialog" : undefined}
+              aria-modal={mobileFilterDialogMounted ? true : undefined}
+              aria-labelledby="catalogue-filter-title"
+              className="glass-filter-panel mobile-filter-panel h-fit p-5 lg:sticky lg:top-6"
+            >
+              <div className="mobile-filter-header flex items-center justify-between">
+                <h3 id="catalogue-filter-title" className="text-[11px] font-bold uppercase tracking-[0.16em]"><span className="md:hidden">Filters</span><span className="hidden md:inline">Filter</span></h3>
+                <div className="flex items-center gap-3">
+                  {hasFilters && <button onClick={resetFilters} className="text-[10px] font-bold uppercase tracking-wider text-[var(--red)]">Reset</button>}
+                  <button type="button" data-mobile-filter-close onClick={closeMobileFilters} aria-label="Close filters" className="flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border)] text-xl text-[var(--foreground)] md:hidden">×</button>
+                </div>
+              </div>
+              <div className="mobile-filter-controls">
+                <div className="mt-6 border-t border-[var(--border)] pt-5"><label htmlFor="catalogue-category" className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--muted)]">Collection</label><select id="catalogue-category" value={selectedCategory} onChange={(event) => updateUrl("category", event.target.value)} className="catalogue-category-select mt-3 w-full appearance-none px-3 py-2 text-[11px] font-medium text-[var(--foreground)] outline-none transition duration-200 focus:border-[var(--red)] focus:ring-2 focus:ring-[var(--red)]/10"><option value="all">All products ({products.length})</option>{categories.map((category) => <option key={category} value={category}>{category} ({products.filter((product) => product.category === category).length})</option>)}</select></div>
+                <div className="mt-6 border-t border-[var(--border)] pt-5"><p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--muted)]">Availability</p><div className="mt-3 grid gap-3">{([{ value: "in-stock", label: "In stock", count: products.filter((product) => product.stock > 0).length }, { value: "out-of-stock", label: "Out of stock", count: products.filter((product) => product.stock <= 0).length }] as const).map((option) => <button key={option.value} onClick={() => { setAvailability(availability === option.value ? "all" : option.value); setCurrentPage(1); }} className={`flex items-center justify-between text-left text-[11px] ${availability === option.value ? "font-bold text-[var(--foreground)]" : "text-[var(--body-gray)] hover:text-[var(--red)]"}`}><span className="flex items-center gap-2"><span className={`h-3 w-3 border border-[var(--border)] ${availability === option.value ? "bg-[var(--red)]" : "bg-white/70"}`} />{option.label}</span><span className="text-[10px] text-[var(--muted)]">{option.count}</span></button>)}</div></div>
+                <div className="mt-6 border-t border-[var(--border)] pt-5"><div className="flex justify-between"><p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--muted)]">Price</p><span className="text-[10px] text-[var(--body-gray)]">Rs. {maxPrice.toLocaleString()}</span></div><input aria-label="Maximum price" type="range" min="0" max={maximumPrice} step="100" value={maxPrice} onChange={(event) => { setMaxPrice(Number(event.target.value)); setCurrentPage(1); }} className="mt-5 w-full accent-[var(--red)]" /><div className="mt-2 flex justify-between text-[10px] text-[var(--muted)]"><span>Rs. 0</span><span>Rs. {maximumPrice.toLocaleString()}</span></div></div>
+              </div>
+              <div className="mobile-filter-actions md:hidden">
+                <button type="button" onClick={closeMobileFilters} className="flex h-12 w-full items-center justify-center rounded-xl bg-[var(--red)] px-5 text-sm font-bold text-white transition-colors hover:bg-[var(--red-dark)]">Show {filteredProducts.length} results</button>
+              </div>
             </aside>
             <div>
               <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-[var(--border)] pb-4"><span className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--muted)]">Showing {visibleProducts.length} of {filteredProducts.length}</span><label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.14em]">Sort by<select value={selectedSort} onChange={(event) => updateUrl("sort", event.target.value)} className="border-0 bg-transparent py-1 text-[10px] font-bold normal-case tracking-normal outline-none"><option value="featured">Featured</option><option value="newest">Newest</option><option value="price-low">Price: Low to high</option><option value="price-high">Price: High to low</option><option value="name-az">Name: A to Z</option><option value="name-za">Name: Z to A</option></select></label></div>
