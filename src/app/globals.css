@@ -996,6 +996,10 @@ footer a {
     scroll-snap-align: start;
   }
 
+  .collection-visual img {
+    filter: brightness(1.18);
+  }
+
   .collection-visual.product-visual {
     border-radius: 12px;
   }
