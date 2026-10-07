@@ -245,9 +245,9 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
 
   return (
     <>
-      <section id="all-products" ref={catalogueRef} className="catalogue-stage border-y border-[var(--border)] py-12 md:py-28">
+      <section id="all-products" ref={catalogueRef} className="catalogue-stage border-y border-[var(--border)] py-8 md:py-28">
         <div className="section-shell">
-          <div className="flex flex-col justify-between gap-8 border-b border-[var(--border)] pb-6 md:flex-row md:items-end md:pb-8">
+          <div className="flex flex-col justify-between gap-8 border-b border-[var(--border)] pb-4 md:flex-row md:items-end md:pb-8">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--red)]">The complete range</p>
               <div className="flex w-full items-center justify-between gap-3 md:w-auto md:justify-start">
@@ -273,7 +273,7 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
             <p className="hidden max-w-[15rem] text-right text-xs leading-5 text-[var(--body-gray)] md:block">{filteredProducts.length} products{searchTerm ? ` matching "${searchParams.get("search")}"` : ", selected for daily power and practical movement."}</p>
           </div>
           {mobileFilterDialogMounted && <button type="button" data-open={mobileFiltersOpen} aria-label="Close filters" onClick={closeMobileFilters} className="mobile-filter-backdrop" />}
-          <div className="mt-6 grid gap-8 md:mt-10 lg:grid-cols-[200px_1fr]">
+          <div className="mt-4 grid gap-8 md:mt-10 lg:grid-cols-[200px_1fr]">
             <aside
               id="catalogue-filter-panel"
               ref={filterPanelRef}
@@ -300,7 +300,7 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
               </div>
             </aside>
             <div>
-              <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-[var(--border)] pb-4"><span className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--muted)]">Showing {visibleProducts.length} of {filteredProducts.length}</span><label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.14em]">Sort by<select value={selectedSort} onChange={(event) => updateUrl("sort", event.target.value)} className="border-0 bg-transparent py-1 text-[10px] font-bold normal-case tracking-normal outline-none"><option value="featured">Featured</option><option value="newest">Newest</option><option value="price-low">Price: Low to high</option><option value="price-high">Price: High to low</option><option value="name-az">Name: A to Z</option><option value="name-za">Name: Z to A</option></select></label></div>
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-4 border-b border-[var(--border)] pb-3 md:mb-6 md:pb-4"><span className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--muted)]">Showing {visibleProducts.length} of {filteredProducts.length}</span><label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.14em]">Sort by<select value={selectedSort} onChange={(event) => updateUrl("sort", event.target.value)} className="border-0 bg-transparent py-1 text-[10px] font-bold normal-case tracking-normal outline-none"><option value="featured">Featured</option><option value="newest">Newest</option><option value="price-low">Price: Low to high</option><option value="price-high">Price: High to low</option><option value="name-az">Name: A to Z</option><option value="name-za">Name: Z to A</option></select></label></div>
               {visibleProducts.length ? <div className="catalogue-product-grid grid gap-4 sm:gap-5">{visibleProducts.map((product) => <ProductCard key={product.id} product={product} plain />)}</div> : <div className="border border-dashed border-[var(--border)] bg-white/70 px-6 py-20 text-center"><h3 className="text-xl font-black uppercase">No products found</h3><p className="mt-2 text-sm text-[var(--body-gray)]">Try widening your price range or clearing the category filter.</p><button onClick={resetFilters} className="mt-5 bg-[var(--red)] px-5 py-3 text-xs font-bold uppercase tracking-wider text-white">Reset filters</button></div>}
               {totalPages > 1 && <nav aria-label="Product pages" className="mt-12 flex items-center justify-center gap-6 text-[10px] font-medium"><button type="button" aria-label="Previous page" disabled={currentPage === 1} onClick={() => setCurrentPage((page) => Math.max(1, page - 1))} className="flex h-11 w-11 items-center justify-center text-[var(--muted)] disabled:opacity-30">‹</button>{Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => <button type="button" key={page} onClick={() => setCurrentPage(page)} aria-current={currentPage === page ? "page" : undefined} className={`flex h-11 w-11 items-center justify-center rounded-full ${currentPage === page ? "bg-[var(--red)] font-bold text-white" : "text-[var(--foreground)]"}`}>{page}</button>)}<button type="button" aria-label="Next page" disabled={currentPage === totalPages} onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))} className="flex h-11 w-11 items-center justify-center text-[var(--muted)] disabled:opacity-30">›</button></nav>}
             </div>
