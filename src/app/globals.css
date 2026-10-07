@@ -965,11 +965,16 @@ footer a {
   }
 
   .collection-category-viewport {
+    background-color: #fff;
     overflow-x: auto;
     overscroll-behavior-x: contain;
     scrollbar-width: none;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
+  }
+
+  .collection-category-carousel {
+    background-color: #fff;
   }
 
   .collection-category-viewport::-webkit-scrollbar {
