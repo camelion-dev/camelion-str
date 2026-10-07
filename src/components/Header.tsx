@@ -142,7 +142,15 @@ export function Header({ categories, searchProducts = [] }: { categories?: strin
       {mobileMenuOpen && <div className="mobile-site-menu" id="mobile-site-menu" role="dialog" aria-modal="true" aria-label="Navigation menu">
         <div className="mobile-site-menu-header">
           <Link href="/" onClick={closeMenu} aria-label="Camelion home"><img src="/brand-logo.avif" alt="Camelion" className="h-7 w-auto object-contain" /></Link>
-          <button ref={menuCloseButtonRef} type="button" onClick={closeMenu} className="flex h-11 w-11 items-center justify-center text-3xl font-light text-[var(--foreground)]" aria-label="Close navigation menu">×</button>
+          <div className="mobile-site-menu-actions">
+            <Link href="/account" onClick={closeMenu} className="mobile-menu-account" aria-label="Account: sign in or register" title="Sign in or register">
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" className="h-[22px] w-[22px]" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="8" r="3.5" />
+                <path d="M5 20a7 7 0 0 1 14 0" />
+              </svg>
+            </Link>
+            <button ref={menuCloseButtonRef} type="button" onClick={closeMenu} className="flex h-11 w-11 items-center justify-center text-3xl font-light text-[var(--foreground)]" aria-label="Close navigation menu">×</button>
+          </div>
         </div>
         <nav aria-label="Mobile navigation" className="mobile-site-menu-links">
           <Link href="/" onClick={closeMenu}>Home</Link>

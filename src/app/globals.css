@@ -994,10 +994,12 @@ footer a {
     border-radius: 18px;
     padding: 8px;
     scroll-snap-align: start;
+    background-color: transparent;
+    box-shadow: none;
   }
 
-  .collection-visual img {
-    filter: brightness(1.18);
+  .collection-category-card:hover {
+    box-shadow: none;
   }
 
   .collection-visual.product-visual {
@@ -1104,6 +1106,21 @@ footer a {
     justify-content: space-between;
     border-bottom: 1px solid var(--border);
     padding: 0 12px 0 20px;
+  }
+
+  .mobile-site-menu-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .mobile-menu-account {
+    display: flex;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    color: var(--red);
   }
 
   .mobile-site-menu-links {
