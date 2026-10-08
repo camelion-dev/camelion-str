@@ -167,7 +167,6 @@ export default function AdminPortal({ initialProducts }: { initialProducts: Cata
     setForm({ name: product.name, category: product.category, price: String(product.price), compareAtPrice: product.compareAtPrice ? String(product.compareAtPrice) : "", stock: String(product.stock), badge: product.badge || "", description: product.description, imageUrl: product.imageUrl || "", imagePath: product.imagePath || "" });
     setImagePreview(product.imageUrl || "");
     setIsAddProductModalOpen(true);
-    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const toggleProduct = async (product: CatalogProduct) => {
