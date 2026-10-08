@@ -1195,7 +1195,7 @@ footer a {
     min-height: 0;
     flex-direction: column;
     overflow: hidden;
-    padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+    padding: max(10px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
     background: #fff;
     color: var(--foreground);
     box-shadow: -12px 0 34px rgb(17 17 17 / 12%);
@@ -1220,7 +1220,15 @@ footer a {
   }
 
   .mobile-search-panel-top-close-only {
+    min-height: 32px;
     justify-content: flex-end;
+  }
+
+  .mobile-search-panel-top-close-only .mobile-search-close {
+    width: 32px;
+    height: 32px;
+    min-height: 32px;
+    flex-basis: 32px;
   }
 
   .mobile-search-close,
@@ -1245,7 +1253,7 @@ footer a {
     flex: 0 0 auto;
     align-items: center;
     gap: 8px;
-    margin-top: 14px;
+    margin-top: 4px;
     border-bottom: 1px solid #d9d9d9;
   }
 
