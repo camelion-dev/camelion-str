@@ -43,6 +43,10 @@ npx prisma migrate dev --name init
 
 For a hosted deployment, apply the migration with `npx prisma migrate deploy`.
 
+## Product search keywords
+
+Before deploying changes that use product search keywords, run [`supabase/product_keywords.sql`](supabase/product_keywords.sql) in Supabase Dashboard > SQL Editor. It adds an optional `keywords` column to `Product`; existing rows remain valid without values. Admins can enter comma-separated alternate search terms when creating or editing a product.
+
 ## Supabase Storage
 
 1. Open Supabase Dashboard > SQL Editor.

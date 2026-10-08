@@ -6,6 +6,7 @@ export type CatalogProduct = {
   price: number;
   compareAtPrice?: number;
   badge?: string;
+  keywords?: string;
   visual: string;
   stock: number;
   active: boolean;
@@ -46,6 +47,7 @@ function mapProduct(row: Record<string, unknown>): CatalogProduct {
     price: Number(row.price),
     compareAtPrice: row.compareAtPrice == null ? undefined : Number(row.compareAtPrice),
     badge: row.badge ? String(row.badge) : undefined,
+    keywords: row.keywords ? String(row.keywords) : undefined,
     visual: String(row.visual || "product-battery"),
     stock: Number(row.stock || 0),
     active: Boolean(row.isActive),
@@ -116,7 +118,7 @@ export async function getCatalogProductsByIds(ids: string[]) {
 export async function createCatalogProduct(input: Omit<CatalogProduct, "id" | "slug" | "images">) {
   const id = crypto.randomUUID();
   const slug = `${input.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${Date.now()}`;
-  const response = await supabase("Product", { method: "POST", headers: { Prefer: "return=representation" }, body: JSON.stringify({ id, name: input.name, slug, description: input.description, price: input.price, compareAtPrice: input.compareAtPrice ?? null, badge: input.badge ?? null, visual: input.visual, stock: input.stock, isActive: input.active, imageUrl: input.imageUrl ?? null, imagePath: input.imagePath ?? null, categoryId: await categoryId(input.category) }) });
+  const response = await supabase("Product", { method: "POST", headers: { Prefer: "return=representation" }, body: JSON.stringify({ id, name: input.name, slug, description: input.description, price: input.price, compareAtPrice: input.compareAtPrice ?? null, badge: input.badge ?? null, keywords: input.keywords?.trim() || null, visual: input.visual, stock: input.stock, isActive: input.active, imageUrl: input.imageUrl ?? null, imagePath: input.imagePath ?? null, categoryId: await categoryId(input.category) }) });
   const rows = await response.json() as Array<Record<string, unknown>>;
   const createdId = rows[0]?.id ? String(rows[0].id) : id;
   const createdSlug = rows[0]?.slug ? String(rows[0].slug) : slug;
@@ -130,6 +132,7 @@ export async function updateCatalogProduct(id: string, input: Partial<Omit<Catal
   if (input.price !== undefined) payload.price = input.price;
   if (input.compareAtPrice !== undefined) payload.compareAtPrice = input.compareAtPrice ?? null;
   if (input.badge !== undefined) payload.badge = input.badge ?? null;
+  if (input.keywords !== undefined) payload.keywords = input.keywords?.trim() || null;
   if (input.visual !== undefined) payload.visual = input.visual;
   if (input.stock !== undefined) payload.stock = input.stock;
   if (input.active !== undefined) payload.isActive = input.active;

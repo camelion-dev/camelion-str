@@ -9,7 +9,7 @@ import type { CatalogProduct } from "@/lib/catalog";
 import type { AdminOrderSummary } from "@/lib/orders";
 import type { AdminCustomerSummary } from "@/lib/orders";
 
-const emptyForm = { name: "", category: "Batteries", price: "", compareAtPrice: "", stock: "0", badge: "", description: "", imageUrl: "", imagePath: "" };
+const emptyForm = { name: "", category: "Batteries", price: "", compareAtPrice: "", stock: "0", badge: "", keywords: "", description: "", imageUrl: "", imagePath: "" };
 
 function formatOrderDate(iso: string) {
   const date = new Date(iso);
@@ -164,7 +164,7 @@ export default function AdminPortal({ initialProducts }: { initialProducts: Cata
 
   const editProduct = (product: CatalogProduct) => {
     setEditingId(product.id);
-    setForm({ name: product.name, category: product.category, price: String(product.price), compareAtPrice: product.compareAtPrice ? String(product.compareAtPrice) : "", stock: String(product.stock), badge: product.badge || "", description: product.description, imageUrl: product.imageUrl || "", imagePath: product.imagePath || "" });
+    setForm({ name: product.name, category: product.category, price: String(product.price), compareAtPrice: product.compareAtPrice ? String(product.compareAtPrice) : "", stock: String(product.stock), badge: product.badge || "", keywords: product.keywords || "", description: product.description, imageUrl: product.imageUrl || "", imagePath: product.imagePath || "" });
     setImagePreview(product.imageUrl || "");
     setIsAddProductModalOpen(true);
   };
@@ -290,6 +290,12 @@ function Catalogue({ products, form, editingId, imagePreview, updateForm, submit
         <select value={form.category} onChange={(event) => updateForm("category", event.target.value)} className="rounded-lg border border-[#111]/15 bg-white px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-[#111] outline-none transition focus:border-[#e00000] focus:ring-2 focus:ring-[#e00000]/10">
           {["Batteries", "Chargers", "Flashlights", "Extension Wires", "Portable Devices", "Bundles"].map((category) => <option key={category}>{category}</option>)}
         </select>
+      </label>
+
+      <label className="grid gap-2 text-[10px] font-bold uppercase tracking-wider text-[#666] sm:col-span-2">
+        Search keywords (optional)
+        <input type="text" maxLength={1000} value={form.keywords} onChange={(event) => updateForm("keywords", event.target.value)} placeholder="Coin cell, LR302" className="rounded-lg border border-[#111]/15 bg-white px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-[#111] outline-none transition placeholder:font-normal placeholder:normal-case placeholder:tracking-normal placeholder:text-[#999] focus:border-[#e00000] focus:ring-2 focus:ring-[#e00000]/10" />
+        <span className="text-[10px] font-normal normal-case tracking-normal text-[#888]">Separate terms with commas. These help customers find the product and are not shown on the store.</span>
       </label>
 
       <button disabled={isSavingProduct} className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-[#e00000] px-4 py-3 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-[#b80000] disabled:cursor-wait disabled:opacity-70 sm:col-span-2">

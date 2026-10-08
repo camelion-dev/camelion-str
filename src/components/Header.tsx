@@ -5,6 +5,7 @@ import { type FormEvent, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { useFavorites } from "@/context/FavoritesContext";
+import { compareProductSearchRelevance, getProductSearchRelevance } from "@/lib/product-search";
 
 type SearchProduct = {
   name: string;
@@ -13,6 +14,7 @@ type SearchProduct = {
   compareAtPrice?: number;
   category?: string;
   description?: string;
+  keywords?: string;
   imageUrl?: string;
   visual?: string;
 };
@@ -44,9 +46,8 @@ export function Header({ categories, searchProducts = [] }: { categories?: strin
   const mobileSearchMatches = catalogSearchProducts.filter((product) => {
     const matchesCategory = selectedSearchCategory === "all" || product.category === selectedSearchCategory;
     const isOnOffer = product.compareAtPrice !== undefined && product.compareAtPrice > product.price;
-    const searchableText = `${product.name} ${product.category || ""} ${product.description || ""}`.toLowerCase();
-    return matchesCategory && (!showOffersOnly || isOnOffer) && (!normalizedSearchTerm || searchableText.includes(normalizedSearchTerm));
-  });
+    return matchesCategory && (!showOffersOnly || isOnOffer) && (!normalizedSearchTerm || getProductSearchRelevance(product, normalizedSearchTerm) > 0);
+  }).sort((first, second) => compareProductSearchRelevance(first, second, normalizedSearchTerm));
 
   const submitSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();

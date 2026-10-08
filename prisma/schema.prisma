@@ -90,6 +90,7 @@ model Product {
   name        String
   slug        String         @unique
   description String
+  keywords    String?
   price       Int
   compareAtPrice Int?
   badge       String?

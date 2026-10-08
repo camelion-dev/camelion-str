@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties } from "re
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import type { CatalogProduct } from "@/lib/catalog";
+import { getProductSearchRelevance } from "@/lib/product-search";
 import { ProductCard } from "@/components/ProductCard";
 
 const PAGE_SIZE = 12;
@@ -136,11 +137,15 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
   };
 
   const filteredProducts = products
-    .filter((product) => !searchTerm || [product.name, product.category, product.description].some((value) => value.toLowerCase().includes(searchTerm)))
+    .filter((product) => !searchTerm || getProductSearchRelevance(product, searchTerm) > 0)
     .filter((product) => selectedCategory === "all" || product.category === selectedCategory)
     .filter((product) => availability === "all" || (availability === "in-stock" ? product.stock > 0 : product.stock <= 0))
     .filter((product) => product.price >= minPrice && product.price <= maxPrice)
     .sort((first, second) => {
+      if (searchTerm) {
+        const relevanceDifference = getProductSearchRelevance(second, searchTerm) - getProductSearchRelevance(first, searchTerm);
+        if (relevanceDifference !== 0) return relevanceDifference;
+      }
       if (selectedSort === "price-low") return first.price - second.price;
       if (selectedSort === "price-high") return second.price - first.price;
       if (selectedSort === "name-az") return first.name.localeCompare(second.name);
