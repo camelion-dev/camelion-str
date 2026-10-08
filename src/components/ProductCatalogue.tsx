@@ -12,6 +12,16 @@ const MOBILE_FILTER_TRANSITION_MS = 280;
 
 type SortOption = "featured" | "newest" | "price-low" | "price-high" | "name-az" | "name-za";
 type AvailabilityOption = "all" | "in-stock" | "out-of-stock";
+type RecommendationDrag = {
+  pointerId: number;
+  startX: number;
+  startY: number;
+  startTranslateX: number;
+  translateX: number;
+  didDrag: boolean;
+  resumesAutoScroll: boolean;
+  animationDurationMs: number;
+};
 
 export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
   const router = useRouter();
@@ -35,6 +45,87 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
   const mobileFilterCloseTimerRef = useRef<number | null>(null);
   const recommendationViewportRef = useRef<HTMLDivElement>(null);
   const recommendationSetRef = useRef<HTMLDivElement>(null);
+  const recommendationDragRef = useRef<RecommendationDrag | null>(null);
+  const suppressRecommendationClickRef = useRef(false);
+  const suppressRecommendationClickTimerRef = useRef<number | null>(null);
+
+  const handleRecommendationPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    const track = event.currentTarget.querySelector<HTMLElement>(".recommendation-marquee-track");
+    if (!track || (event.pointerType === "mouse" && event.button !== 0)) return;
+
+    const transform = getComputedStyle(track).transform;
+    const translateX = transform === "none" ? 0 : new DOMMatrixReadOnly(transform).m41;
+    const animation = getComputedStyle(track);
+    const animationDurationMs = Number.parseFloat(animation.animationDuration) * 1000;
+    recommendationDragRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      startTranslateX: translateX,
+      translateX,
+      didDrag: false,
+      resumesAutoScroll: animation.animationName === "recommendations-drift",
+      animationDurationMs: Number.isFinite(animationDurationMs) ? animationDurationMs : 0,
+    };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const handleRecommendationPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    const drag = recommendationDragRef.current;
+    const viewport = event.currentTarget;
+    const track = viewport.querySelector<HTMLElement>(".recommendation-marquee-track");
+    if (!drag || drag.pointerId !== event.pointerId || !track) return;
+
+    const deltaX = event.clientX - drag.startX;
+    const deltaY = event.clientY - drag.startY;
+    if (!drag.didDrag && (Math.abs(deltaX) < 6 || Math.abs(deltaX) <= Math.abs(deltaY))) return;
+
+    if (!drag.didDrag) {
+      drag.didDrag = true;
+      viewport.classList.add("is-dragging");
+      track.dataset.dragging = "true";
+    }
+    event.preventDefault();
+
+    const loopWidth = recommendationMarquee.loopWidth;
+    const translateX = drag.startTranslateX + deltaX;
+    if (loopWidth > 0) {
+      const wrappedOffset = ((translateX % loopWidth) + loopWidth) % loopWidth;
+      drag.translateX = wrappedOffset === 0 ? 0 : wrappedOffset - loopWidth;
+    } else {
+      drag.translateX = translateX;
+    }
+    track.style.transform = `translate3d(${drag.translateX}px, 0, 0)`;
+  };
+
+  const finishRecommendationDrag = (event: React.PointerEvent<HTMLDivElement>) => {
+    const drag = recommendationDragRef.current;
+    const viewport = event.currentTarget;
+    const track = viewport.querySelector<HTMLElement>(".recommendation-marquee-track");
+    if (!drag || drag.pointerId !== event.pointerId || !track) return;
+
+    recommendationDragRef.current = null;
+    if (!drag.didDrag) return;
+
+    viewport.classList.remove("is-dragging");
+    if (drag.resumesAutoScroll && recommendationMarquee.loopWidth > 0 && drag.animationDurationMs > 0) {
+      const progress = -drag.translateX / recommendationMarquee.loopWidth;
+      track.style.animationDelay = `-${progress * drag.animationDurationMs}ms`;
+      track.style.removeProperty("transform");
+    } else {
+      track.style.transform = `translate3d(${drag.translateX}px, 0, 0)`;
+    }
+    delete track.dataset.dragging;
+
+    suppressRecommendationClickRef.current = true;
+    if (suppressRecommendationClickTimerRef.current !== null) {
+      window.clearTimeout(suppressRecommendationClickTimerRef.current);
+    }
+    suppressRecommendationClickTimerRef.current = window.setTimeout(() => {
+      suppressRecommendationClickRef.current = false;
+      suppressRecommendationClickTimerRef.current = null;
+    }, 250);
+  };
 
   const updateUrl = (key: "category" | "sort", value: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -330,7 +421,25 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
           </div>
           {recommendations.length > 0 && (<section className="mt-20 border-t border-[var(--border)] pt-12">
             <h2 className="text-center text-2xl font-bold tracking-[-0.04em]">You may also like</h2>
-            <div ref={recommendationViewportRef} className="recommendation-marquee mt-10 overflow-hidden pb-8">
+            <div
+              ref={recommendationViewportRef}
+              className="recommendation-marquee mt-10 overflow-hidden pb-8"
+              aria-label="Recommended products. Drag horizontally to browse."
+              onPointerDown={handleRecommendationPointerDown}
+              onPointerMove={handleRecommendationPointerMove}
+              onPointerUp={finishRecommendationDrag}
+              onPointerCancel={finishRecommendationDrag}
+              onClickCapture={(event) => {
+                if (!suppressRecommendationClickRef.current) return;
+                event.preventDefault();
+                event.stopPropagation();
+                suppressRecommendationClickRef.current = false;
+                if (suppressRecommendationClickTimerRef.current !== null) {
+                  window.clearTimeout(suppressRecommendationClickTimerRef.current);
+                  suppressRecommendationClickTimerRef.current = null;
+                }
+              }}
+            >
               <div
                 className="recommendation-marquee-track flex w-max"
                 data-loop-ready={recommendationMarquee.loopWidth > 0}

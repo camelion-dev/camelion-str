@@ -1344,6 +1344,20 @@ footer a {
   animation: recommendations-drift 36s linear infinite;
 }
 
+.recommendation-marquee {
+  cursor: grab;
+  touch-action: pan-y;
+}
+
+.recommendation-marquee.is-dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.recommendation-marquee-track[data-dragging="true"] {
+  animation: none !important;
+}
+
 .promo-band-marquee {
   animation: promo-band-drift 32s linear infinite;
 }
