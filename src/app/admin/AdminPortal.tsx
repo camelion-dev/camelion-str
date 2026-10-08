@@ -40,6 +40,7 @@ export default function AdminPortal({ initialProducts }: { initialProducts: Cata
   const [tab, setTab] = useState<Tab>("overview");
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [isSavingProduct, setIsSavingProduct] = useState(false);
   const [notice, setNotice] = useState("");
   const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -47,6 +48,7 @@ export default function AdminPortal({ initialProducts }: { initialProducts: Cata
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
   const [currentDate, setCurrentDate] = useState(() => new Date());
   const portalRef = useRef<HTMLElement>(null);
+  const isSavingProductRef = useRef(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -117,30 +119,47 @@ export default function AdminPortal({ initialProducts }: { initialProducts: Cata
 
   const submitProduct = async (event: React.FormEvent) => {
     event.preventDefault();
-    let imageData = { imageUrl: form.imageUrl, imagePath: form.imagePath };
-    if (imageFile) {
-      const uploadData = new FormData();
-      uploadData.append("file", imageFile);
-      uploadData.append("productId", editingId || "new-product");
-      const uploadResponse = await fetch("/api/admin/product-images", { method: "POST", body: uploadData });
-      if (!uploadResponse.ok) {
-        const result = await uploadResponse.json();
-        setNotice(result.error || "Image upload failed.");
+    if (isSavingProductRef.current) return;
+    isSavingProductRef.current = true;
+    setIsSavingProduct(true);
+    try {
+      let imageData = { imageUrl: form.imageUrl, imagePath: form.imagePath };
+      if (imageFile) {
+        const uploadData = new FormData();
+        uploadData.append("file", imageFile);
+        uploadData.append("productId", editingId || "new-product");
+        const uploadResponse = await fetch("/api/admin/product-images", { method: "POST", body: uploadData });
+        if (!uploadResponse.ok) {
+          const result = await uploadResponse.json();
+          setNotice(result.error || "Image upload failed.");
+          return;
+        }
+        const uploadedImage = await uploadResponse.json() as { url: string; path: string };
+        imageData = { imageUrl: uploadedImage.url, imagePath: uploadedImage.path };
+      }
+      const payload = { ...form, ...imageData, price: Number(form.price), compareAtPrice: form.compareAtPrice ? Number(form.compareAtPrice) : undefined, stock: Number(form.stock), active: true };
+      const response = await fetch("/api/admin/products", { method: editingId ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(editingId ? { ...payload, id: editingId } : payload) });
+      if (!response.ok) {
+        setNotice("The product could not be saved.");
         return;
       }
-      const uploadedImage = await uploadResponse.json() as { url: string; path: string };
-      imageData = { imageUrl: uploadedImage.url, imagePath: uploadedImage.path };
+      setForm(emptyForm);
+      setEditingId(null);
+      setImageFile(null);
+      setImagePreview("");
+      setIsAddProductModalOpen(false);
+      setNotice(editingId ? "Product updated and reflected in the store." : "Product added to the catalogue and store.");
+      try {
+        await refresh();
+      } catch {
+        setNotice("The product was saved, but the catalogue could not refresh.");
+      }
+    } catch {
+      setNotice("The product could not be saved. Please check your connection and try again.");
+    } finally {
+      isSavingProductRef.current = false;
+      setIsSavingProduct(false);
     }
-    const payload = { ...form, ...imageData, price: Number(form.price), compareAtPrice: form.compareAtPrice ? Number(form.compareAtPrice) : undefined, stock: Number(form.stock), active: true };
-    const response = await fetch("/api/admin/products", { method: editingId ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(editingId ? { ...payload, id: editingId } : payload) });
-    if (!response.ok) { setNotice("The product could not be saved."); return; }
-    setForm(emptyForm);
-    setEditingId(null);
-    setImageFile(null);
-    setImagePreview("");
-    setIsAddProductModalOpen(false);
-    setNotice(editingId ? "Product updated and reflected in the store." : "Product added to the catalogue and store.");
-    await refresh();
   };
 
   const editProduct = (product: CatalogProduct) => {
@@ -200,7 +219,7 @@ export default function AdminPortal({ initialProducts }: { initialProducts: Cata
           </header>
           {notice && <div className="mt-6 flex items-center justify-between border border-[#e000000]/20 bg-white px-4 py-3 text-sm"><span>{notice}</span><button onClick={() => setNotice("")} className="font-bold text-[#e00000]" aria-label="Dismiss notification">×</button></div>}
           {tab === "overview" && <Overview products={products} orders={orders} setTab={setTab} />}
-          {tab === "catalogue" && <Catalogue products={products} form={form} editingId={editingId} imagePreview={imagePreview} updateForm={updateForm} submitProduct={submitProduct} editProduct={editProduct} toggleProduct={toggleProduct} removeProduct={removeProduct} cancelEdit={() => { setEditingId(null); setForm(emptyForm); setImageFile(null); setImagePreview(""); setIsAddProductModalOpen(false); }} onImageChange={(file) => { if (file.size > 4 * 1024 * 1024) { setNotice("Images must be 4MB or smaller."); return; } setImageFile(file); setImagePreview(URL.createObjectURL(file)); }} isAddProductModalOpen={isAddProductModalOpen} setIsAddProductModalOpen={setIsAddProductModalOpen} />}
+          {tab === "catalogue" && <Catalogue products={products} form={form} editingId={editingId} imagePreview={imagePreview} updateForm={updateForm} submitProduct={submitProduct} editProduct={editProduct} toggleProduct={toggleProduct} removeProduct={removeProduct} cancelEdit={() => { setEditingId(null); setForm(emptyForm); setImageFile(null); setImagePreview(""); setIsAddProductModalOpen(false); }} onImageChange={(file) => { if (file.size > 4 * 1024 * 1024) { setNotice("Images must be 4MB or smaller."); return; } setImageFile(file); setImagePreview(URL.createObjectURL(file)); }} isAddProductModalOpen={isAddProductModalOpen} setIsAddProductModalOpen={setIsAddProductModalOpen} isSavingProduct={isSavingProduct} />}
           {tab === "orders" && (orders.length > 0 ? <OrdersTable orders={orders} expandedOrderId={expandedOrderId} onExpand={setExpandedOrderId} onStatusChange={updateOrderStatus} /> : <p className="mt-8 border border-[#111]/15 bg-white p-8 text-center text-sm text-[#888]">No orders yet. Orders placed by customers at checkout will show up here.</p>)}
           {tab === "customers" && <DataTable title="Customers" columns={["Customer", "Email / phone", "Orders", "Lifetime value"]} rows={customers.map((customer) => [customer.name, customer.email || customer.phone || "No contact details", `${customer.orderCount} order${customer.orderCount === 1 ? "" : "s"}`, `PKR ${customer.lifetimeValue.toLocaleString()}`])} />}
         </section>
@@ -219,7 +238,7 @@ function Overview({ products, orders, setTab }: { products: CatalogProduct[]; or
   return <div className="mt-8"><div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">{[["Gross revenue", `PKR ${grossRevenue.toLocaleString()}`, `From last ${orders.length} order${orders.length === 1 ? "" : "s"}`], ["Orders this week", String(ordersThisWeek), `${orders.length} total loaded`], ["Active products", String(activeProducts), `${products.length} total records`], ["Low stock", String(lowStock).padStart(2, "0"), "Needs attention"]].map(([label, value, change]) => <div key={label} className="border border-[#111]/15 bg-white p-5"><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#888]">{label}</p><p className="mt-7 text-4xl font-black">{value}</p><p className="mt-3 text-xs font-bold text-[#e00000]">{change}</p></div>)}</div><div className="mt-8 grid gap-6 xl:grid-cols-[1.4fr_1fr]"><section className="border border-[#111]/15 bg-white"><div className="flex items-center justify-between border-b border-[#111]/10 p-5"><div><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#e00000]">Live feed</p><h2 className="mt-2 text-2xl font-black uppercase">Recent orders</h2></div><button onClick={() => setTab("orders")} className="text-xs font-bold uppercase tracking-wider text-[#e00000]">View all →</button></div>{orders.length > 0 ? <div className="divide-y divide-[#111]/10">{orders.slice(0, 3).map((order) => <div key={order.id} className="grid gap-2 px-5 py-5 text-sm sm:grid-cols-[1fr_1.4fr_1fr_1fr] sm:items-center"><span className="font-mono text-xs">#{order.orderNumber}</span><span>{order.customerName}</span><span>PKR {order.total.toLocaleString()}</span><span className="text-[10px] font-bold uppercase tracking-wider text-[#e00000]">{order.status.charAt(0) + order.status.slice(1).toLowerCase()}</span></div>)}</div> : <p className="p-5 text-sm text-[#888]">No orders yet.</p>}</section><section className="border border-[#111]/15 bg-[#111] p-6 text-white"><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#ff5757]">Catalogue health</p><h2 className="mt-3 text-2xl font-black uppercase">Keep the store moving.</h2><div className="mt-8 grid gap-4 text-sm"><button onClick={() => setTab("catalogue")} className="flex justify-between border-b border-white/15 pb-4 text-left"><span>Review low stock items</span><span className="text-[#ff5757]">{lowStock} →</span></button><button onClick={() => setTab("catalogue")} className="flex justify-between border-b border-white/15 pb-4 text-left"><span>Manage product catalogue</span><span className="text-[#ff5757]">{activeProducts} →</span></button><button onClick={() => setTab("customers")} className="flex justify-between text-left"><span>Review customer activity</span><span className="text-[#ff5757]">View →</span></button></div></section></div></div>;
 }
 
-function Catalogue({ products, form, editingId, imagePreview, updateForm, submitProduct, editProduct, toggleProduct, removeProduct, cancelEdit, onImageChange, isAddProductModalOpen, setIsAddProductModalOpen }: { products: CatalogProduct[]; form: typeof emptyForm; editingId: string | null; imagePreview: string; updateForm: (key: keyof typeof emptyForm, value: string) => void; submitProduct: (event: React.FormEvent) => void; editProduct: (product: CatalogProduct) => void; toggleProduct: (product: CatalogProduct) => void; removeProduct: (product: CatalogProduct) => Promise<boolean>; cancelEdit: () => void; onImageChange: (file: File) => void; isAddProductModalOpen: boolean; setIsAddProductModalOpen: (value: boolean) => void }) {
+function Catalogue({ products, form, editingId, imagePreview, updateForm, submitProduct, editProduct, toggleProduct, removeProduct, cancelEdit, onImageChange, isAddProductModalOpen, setIsAddProductModalOpen, isSavingProduct }: { products: CatalogProduct[]; form: typeof emptyForm; editingId: string | null; imagePreview: string; updateForm: (key: keyof typeof emptyForm, value: string) => void; submitProduct: (event: React.FormEvent) => void; editProduct: (product: CatalogProduct) => void; toggleProduct: (product: CatalogProduct) => void; removeProduct: (product: CatalogProduct) => Promise<boolean>; cancelEdit: () => void; onImageChange: (file: File) => void; isAddProductModalOpen: boolean; setIsAddProductModalOpen: (value: boolean) => void; isSavingProduct: boolean }) {
   const [productPendingDelete, setProductPendingDelete] = useState<CatalogProduct | null>(null);
   const [isDeletingProduct, setIsDeletingProduct] = useState(false);
   const cancelDeleteButtonRef = useRef<HTMLButtonElement>(null);
@@ -268,7 +287,10 @@ function Catalogue({ products, form, editingId, imagePreview, updateForm, submit
         </select>
       </label>
 
-      <button className="mt-2 w-full rounded-lg bg-[#e00000] px-4 py-3 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-[#b80000] sm:col-span-2">{editingId ? "Save product changes" : "Add to catalogue"} →</button>
+      <button disabled={isSavingProduct} className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-[#e00000] px-4 py-3 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-[#b80000] disabled:cursor-wait disabled:opacity-70 sm:col-span-2">
+        {isSavingProduct && <span aria-hidden="true" className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />}
+        {isSavingProduct ? (editingId ? "Saving changes..." : "Adding to catalogue...") : `${editingId ? "Save product changes" : "Add to catalogue"} →`}
+      </button>
     </form>
   );
 
