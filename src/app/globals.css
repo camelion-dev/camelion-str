@@ -1338,8 +1338,8 @@ footer a {
 
   .mobile-search-offers-chip {
     border-color: var(--red);
-    background: var(--red);
-    color: #fff;
+    background: #fff;
+    color: var(--red);
     font-weight: 700;
   }
 
