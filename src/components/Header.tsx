@@ -65,7 +65,7 @@ export function Header({ categories, searchProducts = [] }: { categories?: strin
   };
 
   return (
-    <header className="site-header border-b border-[var(--border)] bg-white">
+    <header className="site-header sticky top-0 z-40 border-b border-[var(--border)] bg-white md:static">
       <div className="site-header-inner section-shell relative flex flex-wrap items-center justify-between gap-x-3 gap-y-2 py-2 md:h-[72px] md:flex-nowrap md:gap-5 md:py-0">
         <button
           ref={menuButtonRef}
