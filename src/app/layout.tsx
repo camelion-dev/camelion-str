@@ -4,6 +4,7 @@ import { Inter } from "next/font/google";
 import type { ReactNode } from "react";
 import { CartProvider } from "@/context/CartContext";
 import { FavoritesProvider } from "@/context/FavoritesContext";
+import { PageTransition } from "@/components/PageTransition";
 import "./globals.css";
 
 const inter = Inter({
@@ -25,7 +26,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-full">
         <CartProvider>
-          <FavoritesProvider>{children}</FavoritesProvider>
+          <FavoritesProvider>
+            <PageTransition>{children}</PageTransition>
+          </FavoritesProvider>
         </CartProvider>
       </body>
     </html>
