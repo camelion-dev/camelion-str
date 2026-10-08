@@ -317,9 +317,9 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
               {totalPages > 1 && (
                 <nav aria-label="Product pages" className="mt-12 flex items-center justify-center gap-3 text-[10px] font-medium sm:gap-6">
                   <button type="button" aria-label="Previous page" disabled={currentPage === 1} onClick={() => setCurrentPage((page) => Math.max(1, page - 1))} className="flex h-11 w-11 items-center justify-center text-[var(--muted)] disabled:opacity-30">‹</button>
-                  {Array.from({ length: Math.min(totalPages, 2) }, (_, index) => index + 1).map(renderPageButton)}
-                  {totalPages > 3 && <span aria-label={`${totalPages - 3} pages omitted`} className="px-1 text-[var(--muted)]">…</span>}
-                  {totalPages > 2 && renderPageButton(totalPages)}
+                  {Array.from({ length: Math.min(totalPages, 3) }, (_, index) => index + 1).map(renderPageButton)}
+                  {totalPages > 4 && <span aria-label={`${totalPages - 4} pages omitted`} className="px-1 text-[var(--muted)]">…</span>}
+                  {totalPages > 3 && renderPageButton(totalPages)}
                   <button type="button" aria-label="Next page" disabled={currentPage === totalPages} onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))} className="flex h-11 w-11 items-center justify-center text-[var(--muted)] disabled:opacity-30">›</button>
                 </nav>
               )}
