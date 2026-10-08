@@ -236,14 +236,21 @@ h6 { font-size: var(--font-size-base); }
   .desktop-search-filter-bar {
     display: flex;
     flex: 0 0 auto;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 8px;
+    overflow-x: auto;
     border-bottom: 1px solid #ededed;
     padding: 12px 14px;
+    scrollbar-width: none;
+  }
+
+  .desktop-search-filter-bar::-webkit-scrollbar {
+    display: none;
   }
 
   button.desktop-search-filter-chip {
     min-height: 30px;
+    flex: 0 0 auto;
     border: 1px solid #e4e4e4;
     border-radius: 999px;
     background: #fff;

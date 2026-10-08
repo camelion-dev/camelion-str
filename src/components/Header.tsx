@@ -156,7 +156,7 @@ export function Header({ categories, searchProducts = [] }: { categories?: strin
             const nextTarget = event.relatedTarget;
             if (!(nextTarget instanceof Node) || !event.currentTarget.contains(nextTarget)) setDesktopSearchFocused(false);
           }}
-          className="site-search mobile-search-form relative order-last flex h-11 w-full min-w-0 basis-full items-center rounded-md bg-[var(--soft-gray)] px-3 py-0 text-sm text-[var(--muted)] md:order-none md:h-[44px] md:max-w-2xl md:flex-1 md:basis-auto md:px-4"
+          className="site-search mobile-search-form relative order-last flex h-11 w-full min-w-0 basis-full items-center rounded-md bg-[var(--soft-gray)] px-3 py-0 text-sm text-[var(--muted)] md:order-none md:h-[44px] md:max-w-3xl md:flex-1 md:basis-auto md:px-4"
         >
           <button type="submit" className="mr-1 flex h-11 w-11 shrink-0 items-center justify-center text-lg text-[var(--muted)] md:mr-3 md:h-11 md:w-11 lg:h-8 lg:w-8" aria-label="Search products">⌕</button>
           <input
