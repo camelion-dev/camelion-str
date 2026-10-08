@@ -390,6 +390,34 @@ h6 { font-size: var(--font-size-base); }
   }
 }
 
+@media (min-width: 768px) {
+  .site-header-inner {
+    display: grid;
+    grid-template-columns: minmax(200px, 1fr) minmax(0, 3fr) minmax(200px, 1fr);
+    column-gap: 20px;
+  }
+
+  .site-header-logo {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .site-search.mobile-search-form {
+    grid-column: 2;
+    grid-row: 1;
+    width: 100%;
+    max-width: 768px;
+    justify-self: center;
+  }
+
+  .desktop-header-actions {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+    margin-left: 0;
+  }
+}
+
 .site-footer {
   background: #131619;
   color: #fff;
