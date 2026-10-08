@@ -173,7 +173,7 @@ h6 { font-size: var(--font-size-base); }
 }
 
 .product-card-compare {
-  font-size: 0.9375rem;
+  font-size: 0.8125rem;
   font-weight: var(--font-weight-regular);
   line-height: 1.2;
 }
@@ -1008,16 +1008,16 @@ footer a {
   }
 
   .collection-category-card {
-    flex: 0 0 calc((100vw - 64px) / 2.5);
+    flex: 0 0 calc((100vw - 64px) / 2.2);
     border-radius: 18px;
     padding: 8px;
     scroll-snap-align: start;
-    background-color: transparent;
-    box-shadow: none;
+    background-color: #fff;
+    box-shadow: 0 5px 16px rgb(17 17 17 / 5%);
   }
 
   .collection-category-card:hover {
-    box-shadow: none;
+    box-shadow: 0 7px 20px rgb(17 17 17 / 7%);
   }
 
   .collection-visual.product-visual {
