@@ -1040,6 +1040,7 @@ footer a {
   }
 
   .collection-category-carousel {
+    position: relative;
     background-color: #fff;
   }
 
@@ -1080,9 +1081,15 @@ footer a {
 
   .collection-carousel-controls {
     display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-    margin-top: 8px;
+    position: absolute;
+    z-index: 10;
+    inset: 50% 0 auto;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0;
+    padding-inline: 6px;
+    transform: translateY(-50%);
+    pointer-events: none;
   }
 
   .collection-carousel-arrow {
@@ -1092,20 +1099,22 @@ footer a {
     min-height: 36px;
     align-items: center;
     justify-content: center;
-    border: 1px solid var(--border);
+    border: 1px solid var(--red);
     border-radius: 999px;
-    background: #fff;
-    color: var(--red);
+    background: var(--red);
+    color: #fff;
+    box-shadow: 0 2px 8px rgb(17 17 17 / 16%);
+    pointer-events: auto;
     transition: border-color 180ms ease, background-color 180ms ease, opacity 180ms ease;
   }
 
   .collection-carousel-arrow:not(:disabled):active {
-    border-color: var(--red);
-    background: rgb(224 0 0 / 5%);
+    border-color: var(--red-dark);
+    background: var(--red-dark);
   }
 
   .collection-carousel-arrow:disabled {
-    opacity: 0.35;
+    opacity: 0.6;
   }
 
   .collection-carousel-arrow:focus-visible {
