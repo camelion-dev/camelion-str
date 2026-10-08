@@ -323,7 +323,7 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
                   {visiblePageNumbers.map(renderPageButton)}
                   {lastVisiblePage < totalPages - 1 && <span aria-label={`${totalPages - lastVisiblePage - 1} later page${lastVisiblePage === totalPages - 2 ? "" : "s"} omitted`} className="px-1 text-[var(--muted)]">…</span>}
                   {lastVisiblePage < totalPages && renderPageButton(totalPages)}
-                  <button type="button" aria-label="Next page" disabled={currentPage === totalPages} onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))} className="flex h-11 w-11 items-center justify-center text-[var(--muted)] disabled:opacity-30">›</button>
+                  <button type="button" aria-label="Next page" onClick={() => setCurrentPage((page) => page === totalPages ? 1 : page + 1)} className="flex h-11 w-11 items-center justify-center text-[var(--muted)]">›</button>
                 </nav>
               )}
             </div>
