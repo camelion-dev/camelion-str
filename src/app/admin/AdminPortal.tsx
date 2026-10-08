@@ -308,7 +308,6 @@ function Catalogue({ products, form, editingId, imagePreview, updateForm, submit
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#e00000]">{visibleProducts.length} {visibleProducts.length === 1 ? "record" : "records"}</p>
               <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center">
-                <h2 className="text-2xl font-black uppercase">{selectedCategory === "all" ? "All products" : `${selectedCategory} products`}</h2>
                 <select
                   aria-label="Filter products by category"
                   value={selectedCategory}
