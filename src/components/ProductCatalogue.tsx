@@ -254,6 +254,9 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
       {page}
     </button>
   );
+  const firstVisiblePage = Math.max(1, Math.min(currentPage - 1, totalPages - 2));
+  const visiblePageNumbers = Array.from({ length: Math.min(totalPages, 3) }, (_, index) => firstVisiblePage + index);
+  const lastVisiblePage = visiblePageNumbers[visiblePageNumbers.length - 1];
 
   return (
     <>
@@ -317,9 +320,11 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
               {totalPages > 1 && (
                 <nav aria-label="Product pages" className="mt-12 flex items-center justify-center gap-3 text-[10px] font-medium sm:gap-6">
                   <button type="button" aria-label="Previous page" disabled={currentPage === 1} onClick={() => setCurrentPage((page) => Math.max(1, page - 1))} className="flex h-11 w-11 items-center justify-center text-[var(--muted)] disabled:opacity-30">‹</button>
-                  {Array.from({ length: Math.min(totalPages, 3) }, (_, index) => index + 1).map(renderPageButton)}
-                  {totalPages > 4 && <span aria-label={`${totalPages - 4} pages omitted`} className="px-1 text-[var(--muted)]">…</span>}
-                  {totalPages > 3 && renderPageButton(totalPages)}
+                  {firstVisiblePage > 1 && renderPageButton(1)}
+                  {firstVisiblePage > 2 && <span aria-label={`${firstVisiblePage - 2} earlier page${firstVisiblePage === 3 ? "" : "s"} omitted`} className="px-1 text-[var(--muted)]">…</span>}
+                  {visiblePageNumbers.map(renderPageButton)}
+                  {lastVisiblePage < totalPages - 1 && <span aria-label={`${totalPages - lastVisiblePage - 1} later page${lastVisiblePage === totalPages - 2 ? "" : "s"} omitted`} className="px-1 text-[var(--muted)]">…</span>}
+                  {lastVisiblePage < totalPages && renderPageButton(totalPages)}
                   <button type="button" aria-label="Next page" disabled={currentPage === totalPages} onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))} className="flex h-11 w-11 items-center justify-center text-[var(--muted)] disabled:opacity-30">›</button>
                 </nav>
               )}
