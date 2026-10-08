@@ -48,7 +48,7 @@ body {
 @media (max-width: 640px) {
   html,
   body {
-    background-color: #131619;
+    overscroll-behavior-y: none;
   }
 }
 
