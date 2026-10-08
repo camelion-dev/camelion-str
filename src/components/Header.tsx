@@ -32,15 +32,15 @@ export function Header({ categories, searchProducts = [] }: { categories?: strin
   const [searchProductsError, setSearchProductsError] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [desktopSearchHovered, setDesktopSearchHovered] = useState(false);
+  const [desktopSearchFocused, setDesktopSearchFocused] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const menuCloseButtonRef = useRef<HTMLButtonElement>(null);
   const searchButtonRef = useRef<HTMLButtonElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const menuCategories = categories?.length ? categories : defaultCategories;
   const normalizedSearchTerm = searchTerm.trim().toLowerCase();
-  const desktopSearchMatches = normalizedSearchTerm.length > 1
-    ? catalogSearchProducts.filter((product) => product.name.toLowerCase().includes(normalizedSearchTerm)).slice(0, 5)
-    : [];
+  const desktopSearchOpen = desktopSearchHovered || desktopSearchFocused;
   const mobileSearchMatches = catalogSearchProducts.filter((product) => {
     const matchesCategory = selectedSearchCategory === "all" || product.category === selectedSearchCategory;
     const isOnOffer = product.compareAtPrice !== undefined && product.compareAtPrice > product.price;
@@ -57,6 +57,8 @@ export function Header({ categories, searchProducts = [] }: { categories?: strin
     const query = params.toString();
     router.push(query ? `/?${query}#all-products` : "/#all-products");
     setMobileSearchOpen(false);
+    setDesktopSearchHovered(false);
+    setDesktopSearchFocused(false);
   };
 
   useEffect(() => {
@@ -83,7 +85,7 @@ export function Header({ categories, searchProducts = [] }: { categories?: strin
   }, [mobileSearchOpen]);
 
   useEffect(() => {
-    if (!mobileSearchOpen || searchProductsLoaded) return;
+    if ((!mobileSearchOpen && !desktopSearchOpen) || searchProductsLoaded) return;
     let cancelled = false;
     setSearchProductsLoading(true);
     setSearchProductsError(false);
@@ -106,7 +108,7 @@ export function Header({ categories, searchProducts = [] }: { categories?: strin
         if (!cancelled) setSearchProductsLoading(false);
       });
     return () => { cancelled = true; };
-  }, [mobileSearchOpen, searchProductsLoaded]);
+  }, [desktopSearchOpen, mobileSearchOpen, searchProductsLoaded]);
 
   const toggleMenu = () => {
     setMobileSearchOpen(false);
@@ -147,6 +149,13 @@ export function Header({ categories, searchProducts = [] }: { categories?: strin
         <form
           id="mobile-header-search"
           onSubmit={submitSearch}
+          onMouseEnter={() => setDesktopSearchHovered(true)}
+          onMouseLeave={() => setDesktopSearchHovered(false)}
+          onFocusCapture={() => setDesktopSearchFocused(true)}
+          onBlurCapture={(event) => {
+            const nextTarget = event.relatedTarget;
+            if (!(nextTarget instanceof Node) || !event.currentTarget.contains(nextTarget)) setDesktopSearchFocused(false);
+          }}
           className="site-search mobile-search-form relative order-last flex h-11 w-full min-w-0 basis-full items-center rounded-md bg-[var(--soft-gray)] px-3 py-0 text-sm text-[var(--muted)] md:order-none md:h-[44px] md:max-w-2xl md:flex-1 md:basis-auto md:px-4"
         >
           <button type="submit" className="mr-1 flex h-11 w-11 shrink-0 items-center justify-center text-lg text-[var(--muted)] md:mr-3 md:h-11 md:w-11 lg:h-8 lg:w-8" aria-label="Search products">⌕</button>
@@ -156,8 +165,29 @@ export function Header({ categories, searchProducts = [] }: { categories?: strin
             className="site-search-input min-w-0 flex-1 bg-transparent outline-none placeholder:text-[var(--muted)]"
             placeholder="Search batteries, chargers, flashlights..."
             aria-label="Search products"
+            aria-expanded={desktopSearchOpen}
+            aria-controls="desktop-search-panel"
           />
-          {desktopSearchMatches.length > 0 && <div className="absolute left-0 right-0 top-full z-30 mt-2 overflow-hidden rounded-lg border border-[var(--border)] bg-white p-2 text-[var(--foreground)] shadow-[0_18px_40px_rgb(17_17_17_/_12%)]">{desktopSearchMatches.map((product) => <Link key={product.slug} href={`/products/${product.slug}`} onClick={() => { setSearchTerm(""); setMobileSearchOpen(false); }} className="flex min-h-11 items-center justify-between gap-4 px-3 py-2 text-xs transition-colors hover:bg-[var(--soft-gray)]"><span className="truncate font-medium">{product.name}</span><span className="shrink-0 text-[10px] text-[var(--muted)]">Rs. {product.price.toLocaleString()}</span></Link>)}<button type="submit" className="mt-1 w-full border-t border-[var(--border)] px-3 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-[var(--red)]">View all results</button></div>}
+          {desktopSearchOpen && <div id="desktop-search-panel" className="desktop-search-panel" onMouseEnter={() => setDesktopSearchHovered(true)}>
+            <nav className="desktop-search-filter-bar" aria-label="Filter products by offer or category">
+              <button type="button" className={`desktop-search-filter-chip ${showOffersOnly ? "is-active" : ""}`} aria-pressed={showOffersOnly} onClick={() => { setShowOffersOnly((current) => !current); setSelectedSearchCategory("all"); }}>Offers</button>
+              {menuCategories.map((category) => <button type="button" key={category} className={`desktop-search-filter-chip ${selectedSearchCategory === category && !showOffersOnly ? "is-active" : ""}`} aria-pressed={selectedSearchCategory === category && !showOffersOnly} onClick={() => { setSelectedSearchCategory(category); setShowOffersOnly(false); }}>{category}</button>)}
+            </nav>
+            <div className="desktop-search-panel-content">
+              {(normalizedSearchTerm || selectedSearchCategory !== "all" || showOffersOnly) && <section className="desktop-search-results" aria-label="Matching products" aria-live="polite">
+                <p className="desktop-search-overline">Products <span>({mobileSearchMatches.length})</span></p>
+                {searchProductsLoading && <p className="desktop-search-status">Loading products…</p>}
+                {searchProductsError && <div className="desktop-search-status"><p>Products couldn’t be loaded.</p><button type="button" onClick={() => { setSearchProductsLoaded(false); setSearchProductsError(false); }}>Try again</button></div>}
+                {!searchProductsLoading && !searchProductsError && mobileSearchMatches.length > 0 && mobileSearchMatches.map((product) => <Link key={product.slug} href={`/products/${product.slug}`} className="desktop-search-product" onClick={() => { setSearchTerm(""); setDesktopSearchHovered(false); setDesktopSearchFocused(false); }}>
+                  <span className="desktop-search-product-image">{product.imageUrl ? <img src={product.imageUrl} alt="" /> : <span>{product.name.slice(0, 1)}</span>}</span>
+                  <span className="desktop-search-product-info"><span className="desktop-search-product-name">{product.name}</span><span className="desktop-search-product-category">{product.category}</span></span>
+                  <span className="desktop-search-product-price">Rs. {product.price.toLocaleString()}</span>
+                </Link>)}
+                {!searchProductsLoading && !searchProductsError && mobileSearchMatches.length === 0 && <p className="desktop-search-status">No matching products found.</p>}
+                {!searchProductsLoading && !searchProductsError && mobileSearchMatches.length > 0 && <button type="submit" className="desktop-search-view-all">View all results</button>}
+              </section>}
+            </div>
+          </div>}
         </form>
 
         <div className="mobile-header-actions ml-auto flex shrink-0 items-center gap-1 md:hidden">
