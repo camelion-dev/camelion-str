@@ -1300,6 +1300,49 @@ footer a {
     opacity: 1;
   }
 
+  .mobile-search-filter-bar {
+    display: flex;
+    flex: 0 0 auto;
+    gap: 8px;
+    overflow-x: auto;
+    margin: 10px -16px 0;
+    border-bottom: 1px solid #ededed;
+    padding: 0 16px 10px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mobile-search-filter-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mobile-search-filter-chip {
+    min-height: 34px;
+    flex: 0 0 auto;
+    border: 1px solid #e4e4e4;
+    border-radius: 999px;
+    background: #fff;
+    padding: 0 13px;
+    color: #444;
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
+  }
+
+  .mobile-search-filter-chip.is-active {
+    border-color: var(--red);
+    background: var(--red);
+    color: #fff;
+  }
+
+  .mobile-search-offers-chip {
+    border-color: var(--red);
+    background: var(--red);
+    color: #fff;
+    font-weight: 700;
+  }
+
   .mobile-search-panel-content {
     min-height: 0;
     flex: 1;

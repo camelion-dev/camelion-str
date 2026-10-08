@@ -7,10 +7,11 @@ export async function GET() {
   try {
     const products = await getCatalogProducts();
     return NextResponse.json({
-      products: products.map(({ name, slug, price, category, description, imageUrl, visual }) => ({
+      products: products.map(({ name, slug, price, compareAtPrice, category, description, imageUrl, visual }) => ({
         name,
         slug,
         price,
+        compareAtPrice,
         category,
         description,
         imageUrl,
