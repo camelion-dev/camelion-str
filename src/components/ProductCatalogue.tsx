@@ -320,8 +320,6 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
               {totalPages > 1 && (
                 <nav aria-label="Product pages" className="mt-12 flex items-center justify-center gap-3 text-[10px] font-medium sm:gap-6">
                   <button type="button" aria-label="Previous page" disabled={currentPage === 1} onClick={() => setCurrentPage((page) => Math.max(1, page - 1))} className="flex h-11 w-11 items-center justify-center text-[var(--muted)] disabled:opacity-30">‹</button>
-                  {firstVisiblePage > 1 && renderPageButton(1)}
-                  {firstVisiblePage > 2 && <span aria-label={`${firstVisiblePage - 2} earlier page${firstVisiblePage === 3 ? "" : "s"} omitted`} className="px-1 text-[var(--muted)]">…</span>}
                   {visiblePageNumbers.map(renderPageButton)}
                   {lastVisiblePage < totalPages - 1 && <span aria-label={`${totalPages - lastVisiblePage - 1} later page${lastVisiblePage === totalPages - 2 ? "" : "s"} omitted`} className="px-1 text-[var(--muted)]">…</span>}
                   {lastVisiblePage < totalPages && renderPageButton(totalPages)}
