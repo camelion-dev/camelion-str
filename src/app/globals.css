@@ -1004,7 +1004,7 @@ footer a {
     width: max-content;
     min-width: 100%;
     gap: 12px;
-    padding-bottom: 4px;
+    padding-bottom: 12px;
   }
 
   .collection-category-card {
