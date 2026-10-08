@@ -1336,13 +1336,6 @@ footer a {
     color: #fff;
   }
 
-  .mobile-search-offers-chip {
-    border-color: var(--red);
-    background: #fff;
-    color: var(--red);
-    font-weight: 700;
-  }
-
   .mobile-search-panel-content {
     min-height: 0;
     flex: 1;

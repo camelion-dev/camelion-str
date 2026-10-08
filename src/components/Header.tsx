@@ -224,7 +224,7 @@ export function Header({ categories, searchProducts = [] }: { categories?: strin
           </form>
 
           <nav className="mobile-search-filter-bar" aria-label="Filter products">
-            <button type="button" className={`mobile-search-filter-chip mobile-search-offers-chip ${showOffersOnly ? "is-active" : ""}`} aria-pressed={showOffersOnly} onClick={() => { setShowOffersOnly((current) => !current); setSelectedSearchCategory("all"); }}>Offers</button>
+            <button type="button" className={`mobile-search-filter-chip ${showOffersOnly ? "is-active" : ""}`} aria-pressed={showOffersOnly} onClick={() => { setShowOffersOnly((current) => !current); setSelectedSearchCategory("all"); }}>Offers</button>
             {menuCategories.map((category) => <button type="button" key={category} className={`mobile-search-filter-chip ${selectedSearchCategory === category && !showOffersOnly ? "is-active" : ""}`} aria-pressed={selectedSearchCategory === category && !showOffersOnly} onClick={() => { setSelectedSearchCategory(category); setShowOffersOnly(false); }}>{category}</button>)}
           </nav>
 
