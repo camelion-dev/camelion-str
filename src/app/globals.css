@@ -46,7 +46,7 @@ body {
 }
 
 .site-page-transition {
-  animation: site-page-enter 560ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  animation: site-page-enter 700ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
 }
 
 @keyframes site-page-enter {
