@@ -877,6 +877,14 @@ footer a {
   aspect-ratio: 1 / 0.86;
 }
 
+.product-detail-visual {
+  background: white;
+}
+
+.product-detail-visual::after {
+  display: none;
+}
+
 .collection-visual.product-visual {
   aspect-ratio: 1.4 / 1;
   background: transparent;

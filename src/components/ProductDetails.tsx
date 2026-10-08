@@ -42,7 +42,7 @@ export function ProductDetails({ product }: { product: CatalogProduct }) {
     <div className="section-shell grid gap-10 py-10 md:grid-cols-2 md:gap-14 md:py-16">
       {/* Image gallery */}
       <div>
-        <div className="product-visual overflow-hidden rounded-2xl border border-[var(--border)]">
+        <div className="product-visual product-detail-visual overflow-hidden rounded-2xl border-0">
           {gallery ? (
             <div role="img" aria-label={product.name} className="absolute inset-0 bg-contain bg-center bg-no-repeat" style={{ backgroundImage: `url(${gallery[activeImage]?.url})` }} />
           ) : (
