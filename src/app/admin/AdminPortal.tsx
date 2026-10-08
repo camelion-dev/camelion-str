@@ -241,7 +241,13 @@ function Overview({ products, orders, setTab }: { products: CatalogProduct[]; or
 function Catalogue({ products, form, editingId, imagePreview, updateForm, submitProduct, editProduct, toggleProduct, removeProduct, cancelEdit, onImageChange, isAddProductModalOpen, setIsAddProductModalOpen, isSavingProduct }: { products: CatalogProduct[]; form: typeof emptyForm; editingId: string | null; imagePreview: string; updateForm: (key: keyof typeof emptyForm, value: string) => void; submitProduct: (event: React.FormEvent) => void; editProduct: (product: CatalogProduct) => void; toggleProduct: (product: CatalogProduct) => void; removeProduct: (product: CatalogProduct) => Promise<boolean>; cancelEdit: () => void; onImageChange: (file: File) => void; isAddProductModalOpen: boolean; setIsAddProductModalOpen: (value: boolean) => void; isSavingProduct: boolean }) {
   const [productPendingDelete, setProductPendingDelete] = useState<CatalogProduct | null>(null);
   const [isDeletingProduct, setIsDeletingProduct] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const cancelDeleteButtonRef = useRef<HTMLButtonElement>(null);
+  const categories = Array.from(new Set([
+    ...products.map((product) => product.category),
+    ...(selectedCategory === "all" ? [] : [selectedCategory]),
+  ])).sort((first, second) => first.localeCompare(second));
+  const visibleProducts = products.filter((product) => selectedCategory === "all" || product.category === selectedCategory);
   const closeProductModal = () => {
     setIsAddProductModalOpen(false);
     cancelEdit();
@@ -300,13 +306,24 @@ function Catalogue({ products, form, editingId, imagePreview, updateForm, submit
         <section className="catalogue-products border border-[#111]/15 bg-white">
           <div className="flex flex-col justify-between gap-3 border-b border-[#111]/10 p-5 sm:flex-row sm:items-center">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#e00000]">{products.length} records</p>
-              <h2 className="mt-2 text-2xl font-black uppercase">All products</h2>
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#e00000]">{visibleProducts.length} {visibleProducts.length === 1 ? "record" : "records"}</p>
+              <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center">
+                <h2 className="text-2xl font-black uppercase">{selectedCategory === "all" ? "All products" : `${selectedCategory} products`}</h2>
+                <select
+                  aria-label="Filter products by category"
+                  value={selectedCategory}
+                  onChange={(event) => setSelectedCategory(event.target.value)}
+                  className="min-h-11 w-full border border-[#111]/20 bg-white px-3 text-sm text-[#111] outline-none transition-colors hover:border-[#e00000]/50 focus:border-[#e00000] focus:ring-2 focus:ring-[#e00000]/10 sm:w-auto"
+                >
+                  <option value="all">All categories</option>
+                  {categories.map((category) => <option key={category} value={category}>{category}</option>)}
+                </select>
+              </div>
             </div>
             <button type="button" onClick={() => { if (editingId) cancelEdit(); setIsAddProductModalOpen(true); }} className="rounded-none border-2 border-[#111] bg-[#e00000] px-5 py-2.5 text-[10px] font-black uppercase tracking-[0.14em] text-white shadow-[3px_3px_0_#111] transition-[background-color,transform,box-shadow] hover:bg-[#b80000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e00000]/30 focus-visible:ring-offset-2">Add Product</button>
           </div>
           <div className="divide-y divide-[#111]/10">
-            {products.map((product) => (
+            {visibleProducts.length === 0 ? <p className="p-5 text-sm text-[#666]">No products in this category.</p> : visibleProducts.map((product) => (
               <div key={product.id} className="grid gap-4 p-5 transition-colors hover:bg-[#fafbfc] md:grid-cols-[64px_1fr_auto] md:items-center">
                 <div className="product-visual h-16 w-16 rounded-lg border border-[#e5e5e5]">
                   {product.imageUrl ? <div role="img" aria-label={`${product.name} product image`} className="h-full w-full bg-contain bg-center bg-no-repeat" style={{ backgroundImage: `url(${product.imageUrl})` }} /> : <div className={`${product.visual} product-fallback-visual scale-50`} />}
