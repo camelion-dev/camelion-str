@@ -24,7 +24,6 @@ export function Header({ categories, searchProducts = [] }: { categories?: strin
   const { count: favoritesCount } = useFavorites();
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedSearchCategory, setSelectedSearchCategory] = useState("all");
   const [showOffersOnly, setShowOffersOnly] = useState(false);
   const [catalogSearchProducts, setCatalogSearchProducts] = useState(searchProducts);
   const [searchProductsLoaded, setSearchProductsLoaded] = useState(searchProducts.length > 0);
@@ -42,21 +41,16 @@ export function Header({ categories, searchProducts = [] }: { categories?: strin
     ? catalogSearchProducts.filter((product) => product.name.toLowerCase().includes(normalizedSearchTerm)).slice(0, 5)
     : [];
   const mobileSearchMatches = catalogSearchProducts.filter((product) => {
-    const matchesCategory = selectedSearchCategory === "all" || product.category === selectedSearchCategory;
     const isOnOffer = product.compareAtPrice !== undefined && product.compareAtPrice > product.price;
     const searchableText = `${product.name} ${product.category || ""} ${product.description || ""}`.toLowerCase();
-    return matchesCategory && (!showOffersOnly || isOnOffer) && (!normalizedSearchTerm || searchableText.includes(normalizedSearchTerm));
+    return (!showOffersOnly || isOnOffer) && (!normalizedSearchTerm || searchableText.includes(normalizedSearchTerm));
   });
-  const categorySuggestions = normalizedSearchTerm
-    ? menuCategories.filter((category) => category.toLowerCase().includes(normalizedSearchTerm))
-    : [];
 
   const submitSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const value = searchTerm.trim();
     const params = new URLSearchParams();
     if (value) params.set("search", value);
-    if (selectedSearchCategory !== "all") params.set("category", selectedSearchCategory);
     const query = params.toString();
     router.push(query ? `/?${query}#all-products` : "/#all-products");
     setMobileSearchOpen(false);
@@ -203,12 +197,7 @@ export function Header({ categories, searchProducts = [] }: { categories?: strin
       {mobileSearchOpen && <div className="mobile-search-layer" id="mobile-search-layer">
         <button type="button" className="mobile-search-backdrop" onClick={closeSearch} aria-label="Close search" />
         <section className="mobile-search-panel" role="dialog" aria-modal="true" aria-label="Search Camelion">
-          <div className="mobile-search-panel-top">
-            <label className="sr-only" htmlFor="mobile-search-category">Search category</label>
-            <select id="mobile-search-category" value={selectedSearchCategory} onChange={(event) => { setSelectedSearchCategory(event.target.value); setShowOffersOnly(false); }} className="mobile-search-category-select">
-              <option value="all">All Tags</option>
-              {menuCategories.map((category) => <option key={category} value={category}>{category}</option>)}
-            </select>
+          <div className="mobile-search-panel-top mobile-search-panel-top-close-only">
             <button type="button" onClick={closeSearch} className="mobile-search-close" aria-label="Close search">×</button>
           </div>
 
@@ -223,18 +212,12 @@ export function Header({ categories, searchProducts = [] }: { categories?: strin
             {searchTerm && <button type="button" className="mobile-search-clear" onClick={() => setSearchTerm("")} aria-label="Clear search">×</button>}
           </form>
 
-          <nav className="mobile-search-filter-bar" aria-label="Filter products">
-            <button type="button" className={`mobile-search-filter-chip ${showOffersOnly ? "is-active" : ""}`} aria-pressed={showOffersOnly} onClick={() => { setShowOffersOnly((current) => !current); setSelectedSearchCategory("all"); }}>Offers</button>
-            {menuCategories.map((category) => <button type="button" key={category} className={`mobile-search-filter-chip ${selectedSearchCategory === category && !showOffersOnly ? "is-active" : ""}`} aria-pressed={selectedSearchCategory === category && !showOffersOnly} onClick={() => { setSelectedSearchCategory(category); setShowOffersOnly(false); }}>{category}</button>)}
+          <nav className="mobile-search-filter-bar" aria-label="Product offers filter">
+            <button type="button" className={`mobile-search-filter-chip ${showOffersOnly ? "is-active" : ""}`} aria-pressed={showOffersOnly} onClick={() => setShowOffersOnly((current) => !current)}>Offers</button>
           </nav>
 
           <div className="mobile-search-panel-content">
-            {categorySuggestions.length > 0 && selectedSearchCategory === "all" && <section className="mobile-search-suggestions" aria-label="Search suggestions">
-              <p className="mobile-search-overline">Suggestions</p>
-              {categorySuggestions.map((category) => <button type="button" key={category} onClick={() => { setSelectedSearchCategory(category); setShowOffersOnly(false); setSearchTerm(""); }}>{category}</button>)}
-            </section>}
-
-            {(normalizedSearchTerm || selectedSearchCategory !== "all" || showOffersOnly) && <section className="mobile-search-results" aria-label="Matching products" aria-live="polite">
+            {(normalizedSearchTerm || showOffersOnly) && <section className="mobile-search-results" aria-label="Matching products" aria-live="polite">
               <p className="mobile-search-overline">Products <span>({mobileSearchMatches.length})</span></p>
               {searchProductsLoading && <p className="mobile-search-status">Loading products…</p>}
               {searchProductsError && <div className="mobile-search-status"><p>Products couldn’t be loaded.</p><button type="button" onClick={() => { setSearchProductsLoaded(false); setSearchProductsError(false); }}>Try again</button></div>}
