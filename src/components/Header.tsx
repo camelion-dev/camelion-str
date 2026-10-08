@@ -221,14 +221,6 @@ export function Header({ categories, searchProducts = [] }: { categories?: strin
           </form>
 
           <div className="mobile-search-panel-content">
-            {!normalizedSearchTerm && selectedSearchCategory === "all" && <section aria-label="Popular searches">
-              <h2 className="mobile-search-section-title">Popular searches:</h2>
-              <div className="mobile-search-popular-list">
-                {["Batteries", "Wires", "Flashlights"].map((term) => <button type="button" key={term} onClick={() => setSearchTerm(term)}>{term}</button>)}
-              </div>
-              <h2 className="mobile-search-section-title mobile-search-browse-title">Most searched products:</h2>
-            </section>}
-
             {categorySuggestions.length > 0 && selectedSearchCategory === "all" && <section className="mobile-search-suggestions" aria-label="Search suggestions">
               <p className="mobile-search-overline">Suggestions</p>
               {categorySuggestions.map((category) => <button type="button" key={category} onClick={() => { setSelectedSearchCategory(category); setSearchTerm(""); }}>{category}</button>)}

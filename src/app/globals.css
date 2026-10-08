@@ -1226,9 +1226,13 @@ footer a {
     flex: 1;
     border: 1px solid #dedede;
     border-radius: 999px;
-    appearance: auto;
-    background: #fff;
-    padding: 0 16px;
+    appearance: none;
+    background-color: #fff;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23111' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-position: right 18px center;
+    background-repeat: no-repeat;
+    background-size: 14px;
+    padding: 0 42px 0 16px;
     color: var(--foreground);
     font-size: 0.9375rem;
     outline: none;
@@ -1305,36 +1309,6 @@ footer a {
     -webkit-overflow-scrolling: touch;
   }
 
-  .mobile-search-section-title {
-    margin: 0;
-    color: var(--foreground);
-    font-size: 1rem;
-    font-weight: 500;
-    line-height: 1.4;
-  }
-
-  .mobile-search-popular-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px 12px;
-    margin-top: 12px;
-  }
-
-  .mobile-search-popular-list button {
-    min-height: 32px;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    color: var(--body-gray);
-    font-size: 0.8125rem;
-    font-weight: 400;
-  }
-
-  .mobile-search-browse-title {
-    margin-top: 20px;
-  }
-
-  .mobile-search-empty-hint,
   .mobile-search-status {
     max-width: none;
     margin: 10px 0 0;
