@@ -1997,15 +1997,16 @@ footer a {
 
   .mobile-out-of-stock-label {
     display: inline-flex;
-    align-self: flex-start;
-    margin-top: 6px;
-    border-radius: 999px;
-    background: #f0f0f0;
-    padding: 3px 8px;
-    color: #666;
-    font-size: 10px;
+    flex: 0 0 auto;
+    align-self: center;
+    margin: 0 0 0 auto;
+    background: transparent;
+    padding: 0;
+    color: var(--red);
+    font-size: 9px;
     font-weight: 600;
     line-height: 1.2;
+    white-space: nowrap;
   }
 }
 
