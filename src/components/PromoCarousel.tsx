@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode, type TransitionEvent as ReactTransitionEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type TransitionEvent as ReactTransitionEvent } from "react";
 
-const slideCount = 3;
+const slideCount = 2;
 
-export function PromoCarousel({ children }: { children: ReactNode }) {
+export function PromoCarousel() {
   const [activeSlide, setActiveSlide] = useState(1);
   const [transitionEnabled, setTransitionEnabled] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
@@ -112,7 +112,7 @@ export function PromoCarousel({ children }: { children: ReactNode }) {
       <div className="promo-carousel__viewport">
         <div
           className="promo-carousel__track"
-          style={{ transform: `translateX(-${activeSlide * 20}%)`, transition: transitionEnabled ? undefined : "none" }}
+          style={{ transform: `translateX(-${activeSlide * 25}%)`, transition: transitionEnabled ? undefined : "none" }}
           onTransitionEnd={handleTrackTransitionEnd}
         >
           <div className="promo-carousel__slide" aria-hidden="true" inert>
@@ -120,21 +120,20 @@ export function PromoCarousel({ children }: { children: ReactNode }) {
               <img src="/assets/slide3.png" alt="" />
             </div>
           </div>
-          <div className="promo-carousel__slide" role="group" aria-roledescription="slide" aria-label="Slide 1 of 3">
-            {children}
-          </div>
-          <div className="promo-carousel__slide" role="group" aria-roledescription="slide" aria-label="Slide 2 of 3">
+          <div className="promo-carousel__slide" role="group" aria-roledescription="slide" aria-label="Slide 1 of 2">
             <div className="promo-carousel__image-slide">
               <img src="/assets/slide2.png" alt="Camelion promotional banner" />
             </div>
           </div>
-          <div className="promo-carousel__slide" role="group" aria-roledescription="slide" aria-label="Slide 3 of 3">
+          <div className="promo-carousel__slide" role="group" aria-roledescription="slide" aria-label="Slide 2 of 2">
             <div className="promo-carousel__image-slide">
               <img src="/assets/slide3.png" alt="Camelion promotional banner" />
             </div>
           </div>
           <div className="promo-carousel__slide" aria-hidden="true" inert>
-            {children}
+            <div className="promo-carousel__image-slide">
+              <img src="/assets/slide2.png" alt="" />
+            </div>
           </div>
         </div>
       </div>
