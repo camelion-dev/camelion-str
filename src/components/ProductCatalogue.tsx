@@ -33,6 +33,7 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
   const selectedCategory = searchParams.get("category") || "all";
   const searchTerm = (searchParams.get("search") || "").trim().toLowerCase();
   const selectedSort = (searchParams.get("sort") as SortOption | null) || "featured";
+  const offersOnly = searchParams.get("offers") === "true";
   const [maxPrice, setMaxPrice] = useState(maximumPrice);
   const [minPrice, setMinPrice] = useState(0);
   const [availability, setAvailability] = useState<AvailabilityOption>("all");
@@ -139,6 +140,7 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
   const filteredProducts = products
     .filter((product) => !searchTerm || getProductSearchRelevance(product, searchTerm) > 0)
     .filter((product) => selectedCategory === "all" || product.category === selectedCategory)
+    .filter((product) => !offersOnly || (product.compareAtPrice !== undefined && product.compareAtPrice > product.price))
     .filter((product) => availability === "all" || (availability === "in-stock" ? product.stock > 0 : product.stock <= 0))
     .filter((product) => product.price >= minPrice && product.price <= maxPrice)
     .sort((first, second) => {
@@ -186,10 +188,15 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
       cta: "See all products",
     },
   ];
-  const hasFilters = Boolean(searchTerm) || selectedCategory !== "all" || selectedSort !== "featured" || availability !== "all" || minPrice > 0 || maxPrice < maximumPrice;
+  const hasFilters = Boolean(searchTerm) || selectedCategory !== "all" || offersOnly || selectedSort !== "featured" || availability !== "all" || minPrice > 0 || maxPrice < maximumPrice;
   const activeFilterCount = Number(selectedCategory !== "all")
+    + Number(offersOnly)
     + Number(availability !== "all")
     + Number(minPrice > 0 || maxPrice < maximumPrice);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCategory, offersOnly]);
 
   const closeMobileFilters = useCallback(() => {
     setMobileFiltersOpen(false);

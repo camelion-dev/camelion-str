@@ -49,17 +49,22 @@ export function Header({ categories, searchProducts = [] }: { categories?: strin
     return matchesCategory && (!showOffersOnly || isOnOffer) && (!normalizedSearchTerm || getProductSearchRelevance(product, normalizedSearchTerm) > 0);
   }).sort((first, second) => compareProductSearchRelevance(first, second, normalizedSearchTerm));
 
-  const submitSearch = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const navigateToSearchResults = () => {
     const value = searchTerm.trim();
     const params = new URLSearchParams();
     if (value) params.set("search", value);
     if (selectedSearchCategory !== "all") params.set("category", selectedSearchCategory);
+    if (showOffersOnly) params.set("offers", "true");
     const query = params.toString();
     router.push(query ? `/?${query}#all-products` : "/#all-products");
     setMobileSearchOpen(false);
     setDesktopSearchHovered(false);
     setDesktopSearchFocused(false);
+  };
+
+  const submitSearch = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    navigateToSearchResults();
   };
 
   useEffect(() => {
@@ -185,7 +190,7 @@ export function Header({ categories, searchProducts = [] }: { categories?: strin
                   <span className="desktop-search-product-price">Rs. {product.price.toLocaleString()}</span>
                 </Link>)}
                 {!searchProductsLoading && !searchProductsError && mobileSearchMatches.length === 0 && <p className="desktop-search-status">No matching products found.</p>}
-                {!searchProductsLoading && !searchProductsError && mobileSearchMatches.length > 0 && <button type="submit" className="desktop-search-view-all">View all results</button>}
+                {!searchProductsLoading && !searchProductsError && mobileSearchMatches.length > 0 && <button type="button" onClick={navigateToSearchResults} className="desktop-search-view-all">View all results</button>}
               </section>}
             </div>
           </div>}
@@ -261,6 +266,7 @@ export function Header({ categories, searchProducts = [] }: { categories?: strin
                 <span className="mobile-search-product-info"><span className="mobile-search-product-name">{product.name}</span><span className="mobile-search-product-price">Rs. {product.price.toLocaleString()}</span></span>
               </Link>)}
               {!searchProductsLoading && !searchProductsError && mobileSearchMatches.length === 0 && <p className="mobile-search-status">No matching products found.</p>}
+              {!searchProductsLoading && !searchProductsError && mobileSearchMatches.length > 0 && <button type="button" onClick={navigateToSearchResults} className="mobile-search-view-all">View all results</button>}
             </section>}
           </div>
         </section>
