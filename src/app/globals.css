@@ -860,7 +860,7 @@ footer a {
 
 .promo-carousel__track {
   display: flex;
-  width: 400%;
+  width: 600%;
   align-items: stretch;
   transition: transform 760ms cubic-bezier(0.22, 0.61, 0.36, 1);
   will-change: transform;
@@ -868,7 +868,7 @@ footer a {
 
 .promo-carousel__slide {
   display: flex;
-  flex: 0 0 25%;
+  flex: 0 0 calc(100% / 6);
   min-width: 0;
 }
 

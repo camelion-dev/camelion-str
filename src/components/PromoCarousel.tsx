@@ -2,7 +2,14 @@
 
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type TransitionEvent as ReactTransitionEvent } from "react";
 
-const slideCount = 2;
+const slides = [
+  "/assets/carousel/slide1.png",
+  "/assets/carousel/slide2.png",
+  "/assets/carousel/slide3.png",
+  "/assets/carousel/slide4.png",
+];
+const slideCount = slides.length;
+const slidesWithClones = [slides[slideCount - 1], ...slides, slides[0]];
 
 export function PromoCarousel() {
   const [activeSlide, setActiveSlide] = useState(1);
@@ -112,29 +119,29 @@ export function PromoCarousel() {
       <div className="promo-carousel__viewport">
         <div
           className="promo-carousel__track"
-          style={{ transform: `translateX(-${activeSlide * 25}%)`, transition: transitionEnabled ? undefined : "none" }}
+          style={{ transform: `translateX(-${(activeSlide * 100) / slidesWithClones.length}%)`, transition: transitionEnabled ? undefined : "none" }}
           onTransitionEnd={handleTrackTransitionEnd}
         >
-          <div className="promo-carousel__slide" aria-hidden="true" inert>
-            <div className="promo-carousel__image-slide">
-              <img src="/assets/slide3.png" alt="" />
-            </div>
-          </div>
-          <div className="promo-carousel__slide" role="group" aria-roledescription="slide" aria-label="Slide 1 of 2">
-            <div className="promo-carousel__image-slide">
-              <img src="/assets/slide2.png" alt="Camelion promotional banner" />
-            </div>
-          </div>
-          <div className="promo-carousel__slide" role="group" aria-roledescription="slide" aria-label="Slide 2 of 2">
-            <div className="promo-carousel__image-slide">
-              <img src="/assets/slide3.png" alt="Camelion promotional banner" />
-            </div>
-          </div>
-          <div className="promo-carousel__slide" aria-hidden="true" inert>
-            <div className="promo-carousel__image-slide">
-              <img src="/assets/slide2.png" alt="" />
-            </div>
-          </div>
+          {slidesWithClones.map((src, index) => {
+            const isClone = index === 0 || index === slidesWithClones.length - 1;
+            return (
+              <div
+                key={`${src}-${index}`}
+                className="promo-carousel__slide"
+                {...(isClone
+                  ? { "aria-hidden": true, inert: true }
+                  : {
+                      role: "group",
+                      "aria-roledescription": "slide",
+                      "aria-label": `Slide ${index} of ${slideCount}`,
+                    })}
+              >
+                <div className="promo-carousel__image-slide">
+                  <img src={src} alt={isClone ? "" : "Camelion promotional banner"} />
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
       <button
