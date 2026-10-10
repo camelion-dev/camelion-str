@@ -41,6 +41,7 @@ export default function AdminPortal({ initialProducts }: { initialProducts: Cata
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isSavingProduct, setIsSavingProduct] = useState(false);
+  const [isReorderingProducts, setIsReorderingProducts] = useState(false);
   const [notice, setNotice] = useState("");
   const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -49,6 +50,7 @@ export default function AdminPortal({ initialProducts }: { initialProducts: Cata
   const [currentDate, setCurrentDate] = useState(() => new Date());
   const portalRef = useRef<HTMLElement>(null);
   const isSavingProductRef = useRef(false);
+  const isReorderingProductsRef = useRef(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -98,6 +100,39 @@ export default function AdminPortal({ initialProducts }: { initialProducts: Cata
     const response = await fetch("/api/admin/products");
     const data = await response.json();
     setProducts(data.products);
+  };
+
+  const reorderProducts = async (productIds: string[]) => {
+    if (isReorderingProductsRef.current) return false;
+    const previousProducts = products;
+    const reorderedProducts = productIds.map((id) => products.find((product) => product.id === id)).filter((product): product is CatalogProduct => Boolean(product));
+    if (reorderedProducts.length !== products.length || reorderedProducts.every((product, index) => product.id === products[index]?.id)) return false;
+
+    isReorderingProductsRef.current = true;
+    setIsReorderingProducts(true);
+    setProducts(reorderedProducts);
+    try {
+      const response = await fetch("/api/admin/products/reorder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productIds }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setProducts(previousProducts);
+        setNotice(data.error || "The product order could not be saved.");
+        return false;
+      }
+      setNotice("Product order updated and reflected in the store.");
+      return true;
+    } catch {
+      setProducts(previousProducts);
+      setNotice("The product order could not be saved. Please check your connection and try again.");
+      return false;
+    } finally {
+      isReorderingProductsRef.current = false;
+      setIsReorderingProducts(false);
+    }
   };
 
   const updateOrderStatus = async (id: string, status: "CONFIRMED" | "CANCELLED") => {
@@ -218,7 +253,7 @@ export default function AdminPortal({ initialProducts }: { initialProducts: Cata
           </header>
           {notice && <div className="mt-6 flex items-center justify-between border border-[#e000000]/20 bg-white px-4 py-3 text-sm"><span>{notice}</span><button onClick={() => setNotice("")} className="font-bold text-[#e00000]" aria-label="Dismiss notification">×</button></div>}
           {tab === "overview" && <Overview products={products} orders={orders} setTab={setTab} />}
-          {tab === "catalogue" && <Catalogue products={products} form={form} editingId={editingId} imagePreview={imagePreview} updateForm={updateForm} submitProduct={submitProduct} editProduct={editProduct} toggleProduct={toggleProduct} removeProduct={removeProduct} cancelEdit={() => { setEditingId(null); setForm(emptyForm); setImageFile(null); setImagePreview(""); setIsAddProductModalOpen(false); }} onImageChange={(file) => { if (file.size > 4 * 1024 * 1024) { setNotice("Images must be 4MB or smaller."); return; } setImageFile(file); setImagePreview(URL.createObjectURL(file)); }} isAddProductModalOpen={isAddProductModalOpen} setIsAddProductModalOpen={setIsAddProductModalOpen} isSavingProduct={isSavingProduct} />}
+          {tab === "catalogue" && <Catalogue products={products} form={form} editingId={editingId} imagePreview={imagePreview} updateForm={updateForm} submitProduct={submitProduct} editProduct={editProduct} toggleProduct={toggleProduct} removeProduct={removeProduct} onReorder={reorderProducts} isReorderingProducts={isReorderingProducts} cancelEdit={() => { setEditingId(null); setForm(emptyForm); setImageFile(null); setImagePreview(""); setIsAddProductModalOpen(false); }} onImageChange={(file) => { if (file.size > 4 * 1024 * 1024) { setNotice("Images must be 4MB or smaller."); return; } setImageFile(file); setImagePreview(URL.createObjectURL(file)); }} isAddProductModalOpen={isAddProductModalOpen} setIsAddProductModalOpen={setIsAddProductModalOpen} isSavingProduct={isSavingProduct} />}
           {tab === "orders" && (orders.length > 0 ? <OrdersTable orders={orders} expandedOrderId={expandedOrderId} onExpand={setExpandedOrderId} onStatusChange={updateOrderStatus} /> : <p className="mt-8 border border-[#111]/15 bg-white p-8 text-center text-sm text-[#888]">No orders yet. Orders placed by customers at checkout will show up here.</p>)}
           {tab === "customers" && <DataTable title="Customers" columns={["Customer", "Email / phone", "Orders", "Lifetime value"]} rows={customers.map((customer) => [customer.name, customer.email || customer.phone || "No contact details", `${customer.orderCount} order${customer.orderCount === 1 ? "" : "s"}`, `PKR ${customer.lifetimeValue.toLocaleString()}`])} />}
         </section>
@@ -237,16 +272,40 @@ function Overview({ products, orders, setTab }: { products: CatalogProduct[]; or
   return <div className="mt-8"><div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">{[["Gross revenue", `PKR ${grossRevenue.toLocaleString()}`, `From last ${orders.length} order${orders.length === 1 ? "" : "s"}`], ["Orders this week", String(ordersThisWeek), `${orders.length} total loaded`], ["Active products", String(activeProducts), `${products.length} total records`], ["Low stock", String(lowStock).padStart(2, "0"), "Needs attention"]].map(([label, value, change]) => <div key={label} className="border border-[#111]/15 bg-white p-5"><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#888]">{label}</p><p className="mt-7 text-4xl font-black">{value}</p><p className="mt-3 text-xs font-bold text-[#e00000]">{change}</p></div>)}</div><div className="mt-8 grid gap-6 xl:grid-cols-[1.4fr_1fr]"><section className="border border-[#111]/15 bg-white"><div className="flex items-center justify-between border-b border-[#111]/10 p-5"><div><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#e00000]">Live feed</p><h2 className="mt-2 text-2xl font-black uppercase">Recent orders</h2></div><button onClick={() => setTab("orders")} className="text-xs font-bold uppercase tracking-wider text-[#e00000]">View all →</button></div>{orders.length > 0 ? <div className="divide-y divide-[#111]/10">{orders.slice(0, 3).map((order) => <div key={order.id} className="grid gap-2 px-5 py-5 text-sm sm:grid-cols-[1fr_1.4fr_1fr_1fr] sm:items-center"><span className="font-mono text-xs">#{order.orderNumber}</span><span>{order.customerName}</span><span>PKR {order.total.toLocaleString()}</span><span className="text-[10px] font-bold uppercase tracking-wider text-[#e00000]">{order.status.charAt(0) + order.status.slice(1).toLowerCase()}</span></div>)}</div> : <p className="p-5 text-sm text-[#888]">No orders yet.</p>}</section><section className="border border-[#111]/15 bg-[#111] p-6 text-white"><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#ff5757]">Catalogue health</p><h2 className="mt-3 text-2xl font-black uppercase">Keep the store moving.</h2><div className="mt-8 grid gap-4 text-sm"><button onClick={() => setTab("catalogue")} className="flex justify-between border-b border-white/15 pb-4 text-left"><span>Review low stock items</span><span className="text-[#ff5757]">{lowStock} →</span></button><button onClick={() => setTab("catalogue")} className="flex justify-between border-b border-white/15 pb-4 text-left"><span>Manage product catalogue</span><span className="text-[#ff5757]">{activeProducts} →</span></button><button onClick={() => setTab("customers")} className="flex justify-between text-left"><span>Review customer activity</span><span className="text-[#ff5757]">View →</span></button></div></section></div></div>;
 }
 
-function Catalogue({ products, form, editingId, imagePreview, updateForm, submitProduct, editProduct, toggleProduct, removeProduct, cancelEdit, onImageChange, isAddProductModalOpen, setIsAddProductModalOpen, isSavingProduct }: { products: CatalogProduct[]; form: typeof emptyForm; editingId: string | null; imagePreview: string; updateForm: (key: keyof typeof emptyForm, value: string) => void; submitProduct: (event: React.FormEvent) => void; editProduct: (product: CatalogProduct) => void; toggleProduct: (product: CatalogProduct) => void; removeProduct: (product: CatalogProduct) => Promise<boolean>; cancelEdit: () => void; onImageChange: (file: File) => void; isAddProductModalOpen: boolean; setIsAddProductModalOpen: (value: boolean) => void; isSavingProduct: boolean }) {
+function Catalogue({ products, form, editingId, imagePreview, updateForm, submitProduct, editProduct, toggleProduct, removeProduct, onReorder, isReorderingProducts, cancelEdit, onImageChange, isAddProductModalOpen, setIsAddProductModalOpen, isSavingProduct }: { products: CatalogProduct[]; form: typeof emptyForm; editingId: string | null; imagePreview: string; updateForm: (key: keyof typeof emptyForm, value: string) => void; submitProduct: (event: React.FormEvent) => void; editProduct: (product: CatalogProduct) => void; toggleProduct: (product: CatalogProduct) => void; removeProduct: (product: CatalogProduct) => Promise<boolean>; onReorder: (productIds: string[]) => Promise<boolean>; isReorderingProducts: boolean; cancelEdit: () => void; onImageChange: (file: File) => void; isAddProductModalOpen: boolean; setIsAddProductModalOpen: (value: boolean) => void; isSavingProduct: boolean }) {
   const [productPendingDelete, setProductPendingDelete] = useState<CatalogProduct | null>(null);
   const [isDeletingProduct, setIsDeletingProduct] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [draggedProductId, setDraggedProductId] = useState<string | null>(null);
   const cancelDeleteButtonRef = useRef<HTMLButtonElement>(null);
   const categories = Array.from(new Set([
     ...products.map((product) => product.category),
     ...(selectedCategory === "all" ? [] : [selectedCategory]),
   ])).sort((first, second) => first.localeCompare(second));
   const visibleProducts = products.filter((product) => selectedCategory === "all" || product.category === selectedCategory);
+  const moveProduct = (productId: string, targetId: string) => {
+    if (productId === targetId || isReorderingProducts) return;
+    const reorderedVisibleProducts = [...visibleProducts];
+    const sourceIndex = reorderedVisibleProducts.findIndex((product) => product.id === productId);
+    const targetIndex = reorderedVisibleProducts.findIndex((product) => product.id === targetId);
+    if (sourceIndex < 0 || targetIndex < 0) return;
+    const [movedProduct] = reorderedVisibleProducts.splice(sourceIndex, 1);
+    reorderedVisibleProducts.splice(targetIndex, 0, movedProduct);
+
+    const visibleIndexes = products
+      .map((product, index) => selectedCategory === "all" || product.category === selectedCategory ? index : -1)
+      .filter((index) => index >= 0);
+    const reorderedProducts = [...products];
+    visibleIndexes.forEach((index, visibleIndex) => {
+      reorderedProducts[index] = reorderedVisibleProducts[visibleIndex];
+    });
+    void onReorder(reorderedProducts.map((product) => product.id));
+  };
+  const moveProductBy = (productId: string, offset: -1 | 1) => {
+    const index = visibleProducts.findIndex((product) => product.id === productId);
+    const target = visibleProducts[index + offset];
+    if (target) moveProduct(productId, target.id);
+  };
   const closeProductModal = () => {
     setIsAddProductModalOpen(false);
     cancelEdit();
@@ -323,12 +382,48 @@ function Catalogue({ products, form, editingId, imagePreview, updateForm, submit
                   {categories.map((category) => <option key={category} value={category}>{category}</option>)}
                 </select>
               </div>
+              <p className="mt-2 text-xs text-[#888]">Drag the grip to reorder products. The order is shared with the main store.</p>
             </div>
             <button type="button" onClick={() => { if (editingId) cancelEdit(); setIsAddProductModalOpen(true); }} className="rounded-none border-2 border-[#111] bg-[#e00000] px-5 py-2.5 text-[10px] font-black uppercase tracking-[0.14em] text-white shadow-[3px_3px_0_#111] transition-[background-color,transform,box-shadow] hover:bg-[#b80000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e00000]/30 focus-visible:ring-offset-2">Add Product</button>
           </div>
           <div className="divide-y divide-[#111]/10">
             {visibleProducts.length === 0 ? <p className="p-5 text-sm text-[#666]">No products in this category.</p> : visibleProducts.map((product) => (
-              <div key={product.id} className="grid gap-4 p-5 transition-colors hover:bg-[#fafbfc] md:grid-cols-[64px_1fr_auto] md:items-center">
+              <div
+                key={product.id}
+                onDragOver={(event) => { if (draggedProductId && !isReorderingProducts) event.preventDefault(); }}
+                onDrop={(event) => {
+                  event.preventDefault();
+                  if (draggedProductId) moveProduct(draggedProductId, product.id);
+                  setDraggedProductId(null);
+                }}
+                className={`grid gap-4 p-5 transition-colors hover:bg-[#fafbfc] md:grid-cols-[76px_64px_1fr_auto] md:items-center ${draggedProductId === product.id ? "opacity-50" : ""}`}
+              >
+                <div className="flex items-center gap-2 text-[#888]">
+                  <button
+                    type="button"
+                    draggable
+                    disabled={isReorderingProducts}
+                    aria-label={`Drag to reorder ${product.name}`}
+                    title="Drag to reorder"
+                    onDragStart={(event) => {
+                      setDraggedProductId(product.id);
+                      event.dataTransfer.effectAllowed = "move";
+                      event.dataTransfer.setData("text/plain", product.id);
+                    }}
+                    onDragEnd={() => setDraggedProductId(null)}
+                    className="cursor-grab touch-none rounded p-1 hover:bg-[#111]/5 hover:text-[#e00000] active:cursor-grabbing disabled:cursor-wait"
+                  >
+                    <svg aria-hidden="true" viewBox="0 0 20 20" className="h-5 w-5" fill="currentColor">
+                      <circle cx="7" cy="5" r="1.4" /><circle cx="13" cy="5" r="1.4" />
+                      <circle cx="7" cy="10" r="1.4" /><circle cx="13" cy="10" r="1.4" />
+                      <circle cx="7" cy="15" r="1.4" /><circle cx="13" cy="15" r="1.4" />
+                    </svg>
+                  </button>
+                  <div className="flex flex-col">
+                    <button type="button" disabled={isReorderingProducts || visibleProducts[0]?.id === product.id} onClick={() => moveProductBy(product.id, -1)} aria-label={`Move ${product.name} up`} className="px-1 text-xs leading-4 hover:text-[#e00000] disabled:opacity-25">▲</button>
+                    <button type="button" disabled={isReorderingProducts || visibleProducts[visibleProducts.length - 1]?.id === product.id} onClick={() => moveProductBy(product.id, 1)} aria-label={`Move ${product.name} down`} className="px-1 text-xs leading-4 hover:text-[#e00000] disabled:opacity-25">▼</button>
+                  </div>
+                </div>
                 <div className="product-visual h-16 w-16 rounded-lg border border-[#e5e5e5]">
                   {product.imageUrl ? <div role="img" aria-label={`${product.name} product image`} className="h-full w-full bg-contain bg-center bg-no-repeat" style={{ backgroundImage: `url(${product.imageUrl})` }} /> : <div className={`${product.visual} product-fallback-visual scale-50`} />}
                 </div>

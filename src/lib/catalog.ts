@@ -13,6 +13,7 @@ export type CatalogProduct = {
   description: string;
   imageUrl?: string;
   imagePath?: string;
+  createdAt?: string;
   images: Array<{ url: string; publicId?: string }>;
 };
 
@@ -54,6 +55,7 @@ function mapProduct(row: Record<string, unknown>): CatalogProduct {
     description: String(row.description || ""),
     imageUrl,
     imagePath,
+    createdAt: row.createdAt ? String(row.createdAt) : undefined,
     images: galleryImages.length ? galleryImages : imageUrl ? [{ url: imageUrl, publicId: imagePath }] : [],
   };
 }
@@ -67,12 +69,12 @@ async function categoryId(name: string) {
 }
 
 export async function getCatalogProducts() {
-  const response = await supabase("Product?isActive=eq.true&select=*,Category(name),ProductImage(url,publicId,position)&order=createdAt.desc&ProductImage.order=position.asc");
+  const response = await supabase("Product?isActive=eq.true&select=*,Category(name),ProductImage(url,publicId,position)&order=sortOrder.asc,createdAt.desc&ProductImage.order=position.asc");
   return (await response.json() as Array<Record<string, unknown>>).map(mapProduct);
 }
 
 export async function getAllCatalogProducts() {
-  const response = await supabase("Product?select=*,Category(name),ProductImage(url,publicId,position)&order=createdAt.desc&ProductImage.order=position.asc");
+  const response = await supabase("Product?select=*,Category(name),ProductImage(url,publicId,position)&order=sortOrder.asc,createdAt.desc&ProductImage.order=position.asc");
   return (await response.json() as Array<Record<string, unknown>>).map(mapProduct);
 }
 
@@ -118,7 +120,10 @@ export async function getCatalogProductsByIds(ids: string[]) {
 export async function createCatalogProduct(input: Omit<CatalogProduct, "id" | "slug" | "images">) {
   const id = crypto.randomUUID();
   const slug = `${input.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${Date.now()}`;
-  const response = await supabase("Product", { method: "POST", headers: { Prefer: "return=representation" }, body: JSON.stringify({ id, name: input.name, slug, description: input.description, price: input.price, compareAtPrice: input.compareAtPrice ?? null, badge: input.badge ?? null, keywords: input.keywords?.trim() || null, visual: input.visual, stock: input.stock, isActive: input.active, imageUrl: input.imageUrl ?? null, imagePath: input.imagePath ?? null, categoryId: await categoryId(input.category) }) });
+  const positionResponse = await supabase("Product?select=sortOrder&order=sortOrder.desc&limit=1");
+  const positions = await positionResponse.json() as Array<{ sortOrder: number }>;
+  const sortOrder = (positions[0]?.sortOrder ?? -1) + 1;
+  const response = await supabase("Product", { method: "POST", headers: { Prefer: "return=representation" }, body: JSON.stringify({ id, name: input.name, slug, description: input.description, price: input.price, compareAtPrice: input.compareAtPrice ?? null, badge: input.badge ?? null, keywords: input.keywords?.trim() || null, visual: input.visual, stock: input.stock, isActive: input.active, imageUrl: input.imageUrl ?? null, imagePath: input.imagePath ?? null, sortOrder, categoryId: await categoryId(input.category) }) });
   const rows = await response.json() as Array<Record<string, unknown>>;
   const createdId = rows[0]?.id ? String(rows[0].id) : id;
   const createdSlug = rows[0]?.slug ? String(rows[0].slug) : slug;
@@ -147,4 +152,11 @@ export async function updateCatalogProduct(id: string, input: Partial<Omit<Catal
 export async function deleteCatalogProduct(id: string) {
   const response = await supabase(`Product?id=eq.${encodeURIComponent(id)}`, { method: "DELETE", headers: { Prefer: "return=representation" } });
   return (await response.json() as unknown[]).length > 0;
+}
+
+export async function reorderCatalogProducts(productIds: string[]) {
+  await supabase("rpc/reorder_catalog_products", {
+    method: "POST",
+    body: JSON.stringify({ p_product_ids: productIds }),
+  });
 }

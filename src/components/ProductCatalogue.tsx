@@ -152,6 +152,7 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
       if (selectedSort === "price-high") return second.price - first.price;
       if (selectedSort === "name-az") return first.name.localeCompare(second.name);
       if (selectedSort === "name-za") return second.name.localeCompare(first.name);
+      if (selectedSort === "newest") return (Date.parse(second.createdAt || "") || 0) - (Date.parse(first.createdAt || "") || 0);
       return 0;
     });
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PAGE_SIZE));

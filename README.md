@@ -47,6 +47,10 @@ For a hosted deployment, apply the migration with `npx prisma migrate deploy`.
 
 Before deploying changes that use product search keywords, run [`supabase/product_keywords.sql`](supabase/product_keywords.sql) in Supabase Dashboard > SQL Editor. It adds an optional `keywords` column to `Product`; existing rows remain valid without values. Admins can enter comma-separated alternate search terms when creating or editing a product.
 
+## Product catalogue order
+
+Before deploying product reordering, run [`supabase/catalog_order.sql`](supabase/catalog_order.sql) in Supabase Dashboard > SQL Editor. It adds the persistent `sortOrder` field, preserves the current newest-first catalogue order when first applied, and installs the admin-only database function used to save reordered products. The storefront's Featured order follows this field; the Newest option continues to sort by creation date.
+
 ## Supabase Storage
 
 1. Open Supabase Dashboard > SQL Editor.
