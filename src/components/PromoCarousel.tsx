@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type TransitionEvent as ReactTransitionEvent } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import gsap from "gsap";
 
 const slides = [
   "/assets/carousel/slide1.png",
@@ -15,6 +16,8 @@ export function PromoCarousel() {
   const [activeSlide, setActiveSlide] = useState(1);
   const [transitionEnabled, setTransitionEnabled] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const hasInitializedTrack = useRef(false);
   const pointerStart = useRef<{ x: number; y: number } | null>(null);
   const suppressClick = useRef(false);
 
@@ -29,24 +32,50 @@ export function PromoCarousel() {
   useEffect(() => {
     const timer = window.setTimeout(() => {
       setActiveSlide((current) => Math.min(current + 1, slideCount + 1));
-    }, 3000);
+    }, 4000);
 
     return () => window.clearTimeout(timer);
   }, [activeSlide]);
 
-  useEffect(() => {
-    if (activeSlide !== 0 && activeSlide !== slideCount + 1) return;
-    const timer = window.setTimeout(() => snapToRealSlide(activeSlide), 860);
-    return () => window.clearTimeout(timer);
-  }, [activeSlide, snapToRealSlide]);
+  useLayoutEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+
+    const targetXPercent = -(activeSlide * (100 / slidesWithClones.length));
+    const isClone = activeSlide === 0 || activeSlide === slideCount + 1;
+
+    if (!hasInitializedTrack.current) {
+      gsap.set(track, { xPercent: targetXPercent });
+      hasInitializedTrack.current = true;
+      return;
+    }
+
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!transitionEnabled || prefersReducedMotion) {
+      gsap.set(track, { xPercent: targetXPercent });
+      if (prefersReducedMotion && isClone) {
+        window.requestAnimationFrame(() => snapToRealSlide(activeSlide));
+      }
+      return;
+    }
+
+    const tween = gsap.to(track, {
+      xPercent: targetXPercent,
+      duration: 0.95,
+      ease: "power3.inOut",
+      overwrite: "auto",
+      onComplete: () => {
+        if (isClone) snapToRealSlide(activeSlide);
+      },
+    });
+
+    return () => {
+      tween.kill();
+    };
+  }, [activeSlide, snapToRealSlide, transitionEnabled]);
 
   const moveSlide = (direction: -1 | 1) => {
     setActiveSlide((current) => Math.max(0, Math.min(slideCount + 1, current + direction)));
-  };
-
-  const handleTrackTransitionEnd = (event: ReactTransitionEvent<HTMLDivElement>) => {
-    if (event.propertyName !== "transform" || (activeSlide !== 0 && activeSlide !== slideCount + 1)) return;
-    snapToRealSlide(activeSlide);
   };
 
   const handlePointerDown = (event: ReactPointerEvent<HTMLElement>) => {
@@ -118,9 +147,8 @@ export function PromoCarousel() {
       <span className="promo-carousel__glow" aria-hidden="true" />
       <div className="promo-carousel__viewport">
         <div
+          ref={trackRef}
           className="promo-carousel__track"
-          style={{ transform: `translateX(-${(activeSlide * 100) / slidesWithClones.length}%)`, transition: transitionEnabled ? undefined : "none" }}
-          onTransitionEnd={handleTrackTransitionEnd}
         >
           {slidesWithClones.map((src, index) => {
             const isClone = index === 0 || index === slidesWithClones.length - 1;
