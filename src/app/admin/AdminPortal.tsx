@@ -335,15 +335,36 @@ function Catalogue({ products, form, editingId, imagePreview, updateForm, submit
       <label className="grid gap-2 text-[10px] font-bold uppercase tracking-wider text-[#666] sm:col-span-2">
         Product picture
         <input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => { const file = event.target.files?.[0]; if (file) onImageChange(file); }} className="rounded-lg border border-dashed border-[#111]/20 bg-[#f8f8f8] px-3 py-2.5 text-xs normal-case tracking-normal text-[#444]" />
-        {imagePreview && <img src={imagePreview} alt="Product preview" className="mt-1 aspect-video w-full rounded-lg border border-[#111]/10 bg-[#f6f6f6] object-contain" />}
+        {imagePreview && <img src={imagePreview} alt="Product preview" className="mt-1 aspect-video w-full rounded-lg object-contain" />}
       </label>
 
-      {[["name", "Product name", "text"], ["price", "Price (PKR)", "number"], ["compareAtPrice", "Compare-at price", "number"], ["stock", "Stock units", "number"], ["badge", "Badge", "text"]].map(([key, label, type]) => (
-        <label key={key} className="grid gap-2 text-[10px] font-bold uppercase tracking-wider text-[#666]">
-          {label}
-          <input required={key === "name" || key === "price"} type={type} value={form[key as keyof typeof form]} onChange={(event) => updateForm(key as keyof typeof emptyForm, event.target.value)} className="rounded-lg border border-[#111]/15 bg-white px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-[#111] outline-none transition focus:border-[#e00000] focus:ring-2 focus:ring-[#e00000]/10" />
+      <div className="grid gap-3 sm:col-span-2 sm:grid-cols-[minmax(0,297px)_minmax(0,1fr)_minmax(0,1fr)]">
+        <label className="grid min-w-0 gap-2 text-[10px] font-bold uppercase tracking-wider text-[#666]">
+          Product name
+          <input required type="text" value={form.name} onChange={(event) => updateForm("name", event.target.value)} className="w-full min-w-0 rounded-lg border border-[#111]/15 bg-white px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-[#111] outline-none transition focus:border-[#e00000] focus:ring-2 focus:ring-[#e00000]/10" />
         </label>
-      ))}
+        {([["price", "Price (PKR)"], ["compareAtPrice", "Compare-at price"]] as const).map(([key, label]) => (
+          <label key={key} className="grid min-w-0 gap-2 text-[10px] font-bold uppercase tracking-wider text-[#666]">
+            {label}
+            <input required={key === "price"} type="number" value={form[key]} onChange={(event) => updateForm(key, event.target.value)} className="w-full min-w-0 rounded-lg border border-[#111]/15 bg-white px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-[#111] outline-none transition focus:border-[#e00000] focus:ring-2 focus:ring-[#e00000]/10" />
+          </label>
+        ))}
+      </div>
+
+      <div className="grid gap-3 sm:col-span-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,2fr)]">
+        {([["stock", "Stock units", "number"], ["badge", "Badge", "text"]] as const).map(([key, label, type]) => (
+          <label key={key} className="grid min-w-0 gap-2 text-[10px] font-bold uppercase tracking-wider text-[#666]">
+            {label}
+            <input type={type} value={form[key]} onChange={(event) => updateForm(key, event.target.value)} className="w-full min-w-0 rounded-lg border border-[#111]/15 bg-white px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-[#111] outline-none transition focus:border-[#e00000] focus:ring-2 focus:ring-[#e00000]/10" />
+          </label>
+        ))}
+        <label className="grid min-w-0 gap-2 text-[10px] font-bold uppercase tracking-wider text-[#666]">
+          Category
+          <select value={form.category} onChange={(event) => updateForm("category", event.target.value)} className="w-full min-w-0 rounded-lg border border-[#111]/15 bg-white px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-[#111] outline-none transition focus:border-[#e00000] focus:ring-2 focus:ring-[#e00000]/10">
+            {["Batteries", "Chargers", "Flashlights", "Extension Wires", "Portable Devices", "Bundles"].map((category) => <option key={category}>{category}</option>)}
+          </select>
+        </label>
+      </div>
 
       <div className="grid gap-2 text-[10px] font-bold uppercase tracking-wider text-[#666] sm:col-span-2">
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -360,13 +381,6 @@ function Catalogue({ products, form, editingId, imagePreview, updateForm, submit
           />
         )}
       </div>
-
-      <label className="grid gap-2 text-[10px] font-bold uppercase tracking-wider text-[#666] sm:col-span-2">
-        Category
-        <select value={form.category} onChange={(event) => updateForm("category", event.target.value)} className="rounded-lg border border-[#111]/15 bg-white px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-[#111] outline-none transition focus:border-[#e00000] focus:ring-2 focus:ring-[#e00000]/10">
-          {["Batteries", "Chargers", "Flashlights", "Extension Wires", "Portable Devices", "Bundles"].map((category) => <option key={category}>{category}</option>)}
-        </select>
-      </label>
 
       <label className="grid gap-2 text-[10px] font-bold uppercase tracking-wider text-[#666] sm:col-span-2">
         Search keywords (optional)
