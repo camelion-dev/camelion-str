@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import type { CatalogProduct } from "@/lib/catalog";
 import type { AdminOrderSummary } from "@/lib/orders";
 import type { AdminCustomerSummary } from "@/lib/orders";
+import { getProductSearchRelevance } from "@/lib/product-search";
 
 const emptyForm = { name: "", category: "Batteries", price: "", compareAtPrice: "", stock: "0", badge: "", keywords: "", description: "", detailedDescription: "", imageUrl: "", imagePath: "" };
 
@@ -276,6 +277,7 @@ function Catalogue({ products, form, editingId, imagePreview, updateForm, submit
   const [productPendingDelete, setProductPendingDelete] = useState<CatalogProduct | null>(null);
   const [isDeletingProduct, setIsDeletingProduct] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [productSearchTerm, setProductSearchTerm] = useState("");
   const [isDetailedDescriptionOpen, setIsDetailedDescriptionOpen] = useState(false);
   const [isSearchKeywordsOpen, setIsSearchKeywordsOpen] = useState(false);
   const [draggedProductId, setDraggedProductId] = useState<string | null>(null);
@@ -284,7 +286,10 @@ function Catalogue({ products, form, editingId, imagePreview, updateForm, submit
     ...products.map((product) => product.category),
     ...(selectedCategory === "all" ? [] : [selectedCategory]),
   ])).sort((first, second) => first.localeCompare(second));
-  const visibleProducts = products.filter((product) => selectedCategory === "all" || product.category === selectedCategory);
+  const matchesProductFilters = (product: CatalogProduct) =>
+    (selectedCategory === "all" || product.category === selectedCategory) &&
+    (!productSearchTerm.trim() || getProductSearchRelevance(product, productSearchTerm) > 0);
+  const visibleProducts = products.filter(matchesProductFilters);
   const moveProduct = (productId: string, targetId: string) => {
     if (productId === targetId || isReorderingProducts) return;
     const reorderedVisibleProducts = [...visibleProducts];
@@ -295,7 +300,7 @@ function Catalogue({ products, form, editingId, imagePreview, updateForm, submit
     reorderedVisibleProducts.splice(targetIndex, 0, movedProduct);
 
     const visibleIndexes = products
-      .map((product, index) => selectedCategory === "all" || product.category === selectedCategory ? index : -1)
+      .map((product, index) => matchesProductFilters(product) ? index : -1)
       .filter((index) => index >= 0);
     const reorderedProducts = [...products];
     visibleIndexes.forEach((index, visibleIndex) => {
@@ -426,13 +431,29 @@ function Catalogue({ products, form, editingId, imagePreview, updateForm, submit
                   <option value="all">All categories</option>
                   {categories.map((category) => <option key={category} value={category}>{category}</option>)}
                 </select>
+                <input
+                  type="search"
+                  aria-label="Search products in catalogue"
+                  placeholder="Search products..."
+                  value={productSearchTerm}
+                  onChange={(event) => setProductSearchTerm(event.target.value)}
+                  className="min-h-11 w-full border border-[#111]/20 bg-white px-3 text-sm text-[#111] outline-none transition-colors placeholder:text-[#888] hover:border-[#e00000]/50 focus:border-[#e00000] focus:ring-2 focus:ring-[#e00000]/10 sm:w-64"
+                />
+                <button
+                  type="button"
+                  onClick={() => { setProductSearchTerm(""); setSelectedCategory("all"); }}
+                  disabled={!productSearchTerm && selectedCategory === "all"}
+                  className="min-h-11 shrink-0 border border-[#111]/20 px-4 text-xs font-bold uppercase tracking-wider text-[#111] transition-colors hover:border-[#e00000] hover:text-[#e00000] disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Reset
+                </button>
               </div>
               <p className="mt-2 text-xs text-[#888]">Drag the grip to reorder products. The order is shared with the main store.</p>
             </div>
             <button type="button" onClick={() => { if (editingId) cancelEdit(); setIsAddProductModalOpen(true); }} className="rounded-none border-2 border-[#111] bg-[#e00000] px-5 py-2.5 text-[10px] font-black uppercase tracking-[0.14em] text-white shadow-[3px_3px_0_#111] transition-[background-color,transform,box-shadow] hover:bg-[#b80000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e00000]/30 focus-visible:ring-offset-2">Add Product</button>
           </div>
           <div className="divide-y divide-[#111]/10">
-            {visibleProducts.length === 0 ? <p className="p-5 text-sm text-[#666]">No products in this category.</p> : visibleProducts.map((product) => (
+            {visibleProducts.length === 0 ? <p className="p-5 text-sm text-[#666]">{productSearchTerm.trim() ? "No products match your search." : "No products in this category."}</p> : visibleProducts.map((product) => (
               <div
                 key={product.id}
                 onDragOver={(event) => { if (draggedProductId && !isReorderingProducts) event.preventDefault(); }}
