@@ -345,21 +345,21 @@ function Catalogue({ products, form, editingId, imagePreview, updateForm, submit
         </label>
       ))}
 
-      <label className="grid gap-2 text-[10px] font-bold uppercase tracking-wider text-[#666] sm:col-span-2">
-        <span className="flex flex-wrap items-center justify-between gap-2">
-          <span>Short description</span>
+      <div className="grid gap-2 text-[10px] font-bold uppercase tracking-wider text-[#666] sm:col-span-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <label htmlFor="short-product-description">Short description</label>
           <button type="button" onClick={() => setIsDetailedDescriptionOpen((open) => !open)} className="text-[10px] font-bold uppercase tracking-wider text-[#e00000] underline decoration-[#e00000]/40 underline-offset-4 hover:text-[#b80000]">
             {isDetailedDescriptionOpen ? "Hide detailed description" : "Add detailed description"}
           </button>
-        </span>
-        <input type="text" value={form.description} onChange={(event) => updateForm("description", event.target.value)} className="rounded-lg border border-[#111]/15 bg-white px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-[#111] outline-none transition focus:border-[#e00000] focus:ring-2 focus:ring-[#e00000]/10" />
+        </div>
+        <input id="short-product-description" type="text" value={form.description} onChange={(event) => updateForm("description", event.target.value)} className="rounded-lg border border-[#111]/15 bg-white px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-[#111] outline-none transition focus:border-[#e00000] focus:ring-2 focus:ring-[#e00000]/10" />
         {isDetailedDescriptionOpen && (
           <RichDescriptionEditor
             value={form.detailedDescription}
             onChange={(value) => updateForm("detailedDescription", value)}
           />
         )}
-      </label>
+      </div>
 
       <label className="grid gap-2 text-[10px] font-bold uppercase tracking-wider text-[#666] sm:col-span-2">
         Category
@@ -498,7 +498,9 @@ function Catalogue({ products, form, editingId, imagePreview, updateForm, submit
       )}
 
       {isAddProductModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-[2px]" onClick={closeProductModal}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-[2px]" onClick={(event) => {
+          if (event.target === event.currentTarget) closeProductModal();
+        }}>
           <div
             role="dialog"
             aria-modal="true"
