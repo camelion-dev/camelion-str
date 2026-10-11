@@ -464,7 +464,7 @@ function Catalogue({ products, form, editingId, imagePreview, updateForm, submit
                 }}
                 className={`grid gap-4 p-5 transition-colors hover:bg-[#fafbfc] md:grid-cols-[76px_64px_1fr_auto] md:items-center ${draggedProductId === product.id ? "opacity-50" : ""}`}
               >
-                <div className="flex items-center gap-2 text-[#888]">
+                <div className="flex items-center gap-2 text-[#e00000]">
                   <button
                     type="button"
                     draggable
@@ -477,7 +477,7 @@ function Catalogue({ products, form, editingId, imagePreview, updateForm, submit
                       event.dataTransfer.setData("text/plain", product.id);
                     }}
                     onDragEnd={() => setDraggedProductId(null)}
-                    className="cursor-grab touch-none rounded p-1 hover:bg-[#111]/5 hover:text-[#e00000] active:cursor-grabbing disabled:cursor-wait"
+                    className="cursor-grab touch-none rounded bg-white p-1 text-[#e00000] hover:bg-white hover:text-[#e00000] active:cursor-grabbing disabled:cursor-wait"
                   >
                     <svg aria-hidden="true" viewBox="0 0 20 20" className="h-5 w-5" fill="currentColor">
                       <circle cx="7" cy="5" r="1.4" /><circle cx="13" cy="5" r="1.4" />
