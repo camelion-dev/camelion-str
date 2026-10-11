@@ -417,8 +417,8 @@ function Catalogue({ products, form, editingId, imagePreview, updateForm, submit
   return (
     <>
       <div className="mt-8">
-        <section className="catalogue-products border border-[#111]/15 bg-white">
-          <div className="flex flex-col justify-between gap-3 border-b border-[#111]/10 p-5 sm:flex-row sm:items-center">
+        <section className="catalogue-products bg-white">
+          <div className="flex flex-col justify-between gap-3 p-5 sm:flex-row sm:items-center">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#e00000]">{visibleProducts.length} {visibleProducts.length === 1 ? "record" : "records"}</p>
               <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -452,7 +452,7 @@ function Catalogue({ products, form, editingId, imagePreview, updateForm, submit
             </div>
             <button type="button" onClick={() => { if (editingId) cancelEdit(); setIsAddProductModalOpen(true); }} className="rounded-none border-2 border-[#111] bg-[#e00000] px-5 py-2.5 text-[10px] font-black uppercase tracking-[0.14em] text-white shadow-[3px_3px_0_#111] transition-[background-color,transform,box-shadow] hover:bg-[#b80000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e00000]/30 focus-visible:ring-offset-2">Add Product</button>
           </div>
-          <div className="divide-y divide-[#111]/10">
+          <div>
             {visibleProducts.length === 0 ? <p className="p-5 text-sm text-[#666]">{productSearchTerm.trim() ? "No products match your search." : "No products in this category."}</p> : visibleProducts.map((product) => (
               <div
                 key={product.id}
@@ -490,7 +490,7 @@ function Catalogue({ products, form, editingId, imagePreview, updateForm, submit
                     <button type="button" disabled={isReorderingProducts || visibleProducts[visibleProducts.length - 1]?.id === product.id} onClick={() => moveProductBy(product.id, 1)} aria-label={`Move ${product.name} down`} className="px-1 text-xs leading-4 hover:text-[#e00000] disabled:opacity-25">▼</button>
                   </div>
                 </div>
-                <div className="product-visual h-16 w-16 rounded-lg border border-[#e5e5e5]">
+                <div className="product-visual h-16 w-16 rounded-lg">
                   {product.imageUrl ? <div role="img" aria-label={`${product.name} product image`} className="h-full w-full bg-contain bg-center bg-no-repeat" style={{ backgroundImage: `url(${product.imageUrl})` }} /> : <div className={`${product.visual} product-fallback-visual scale-50`} />}
                 </div>
                 <div>
@@ -501,9 +501,9 @@ function Catalogue({ products, form, editingId, imagePreview, updateForm, submit
                   <p className="mt-1 text-xs text-[#888]">{product.category} · Rs. {product.price.toLocaleString()} · <span className={product.stock < 10 ? "font-bold text-[#e00000]" : ""}>{product.stock} in stock</span></p>
                 </div>
                 <div className="flex flex-wrap gap-2 md:justify-end">
-                  <button onClick={() => editProduct(product)} className="rounded-full border border-red-300 bg-white px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-red-500 transition-colors hover:bg-red-500 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/25 focus-visible:ring-offset-2">Edit</button>
-                  <button onClick={() => toggleProduct(product)} className="rounded-full border border-red-300 bg-white px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-red-500 transition-colors hover:bg-red-500 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/25 focus-visible:ring-offset-2">{product.active ? "Hide" : "Publish"}</button>
-                  <button onClick={() => setProductPendingDelete(product)} className="rounded-full border border-red-300 bg-white px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-red-500 transition-colors hover:bg-red-500 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/25 focus-visible:ring-offset-2">Delete</button>
+                  <button onClick={() => editProduct(product)} className="rounded-full bg-white px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-red-500 transition-colors hover:bg-red-500 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/25 focus-visible:ring-offset-2">Edit</button>
+                  <button onClick={() => toggleProduct(product)} className="rounded-full bg-white px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-red-500 transition-colors hover:bg-red-500 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/25 focus-visible:ring-offset-2">{product.active ? "Hide" : "Publish"}</button>
+                  <button onClick={() => setProductPendingDelete(product)} className="rounded-full bg-white px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-red-500 transition-colors hover:bg-red-500 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/25 focus-visible:ring-offset-2">Delete</button>
                 </div>
               </div>
             ))}
