@@ -277,6 +277,7 @@ function Catalogue({ products, form, editingId, imagePreview, updateForm, submit
   const [isDeletingProduct, setIsDeletingProduct] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isDetailedDescriptionOpen, setIsDetailedDescriptionOpen] = useState(false);
+  const [isSearchKeywordsOpen, setIsSearchKeywordsOpen] = useState(false);
   const [draggedProductId, setDraggedProductId] = useState<string | null>(null);
   const cancelDeleteButtonRef = useRef<HTMLButtonElement>(null);
   const categories = Array.from(new Set([
@@ -367,26 +368,39 @@ function Catalogue({ products, form, editingId, imagePreview, updateForm, submit
       </div>
 
       <div className="grid gap-2 text-[10px] font-bold uppercase tracking-wider text-[#666] sm:col-span-2">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <label htmlFor="short-product-description">Short description</label>
+        <label htmlFor="short-product-description">Short description</label>
+        <input id="short-product-description" type="text" value={form.description} onChange={(event) => updateForm("description", event.target.value)} className="rounded-lg border border-[#111]/15 bg-white px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-[#111] outline-none transition focus:border-[#e00000] focus:ring-2 focus:ring-[#e00000]/10" />
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
           <button type="button" onClick={() => setIsDetailedDescriptionOpen((open) => !open)} className="text-[10px] font-bold uppercase tracking-wider text-[#e00000] underline decoration-[#e00000]/40 underline-offset-4 hover:text-[#b80000]">
             {isDetailedDescriptionOpen ? "Hide detailed description" : "Add detailed description"}
           </button>
+          <button type="button" onClick={() => setIsSearchKeywordsOpen((open) => !open)} className="text-[10px] font-bold uppercase tracking-wider text-[#e00000] underline decoration-[#e00000]/40 underline-offset-4 hover:text-[#b80000]">
+            Search keywords (optional)
+          </button>
         </div>
-        <input id="short-product-description" type="text" value={form.description} onChange={(event) => updateForm("description", event.target.value)} className="rounded-lg border border-[#111]/15 bg-white px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-[#111] outline-none transition focus:border-[#e00000] focus:ring-2 focus:ring-[#e00000]/10" />
-        {isDetailedDescriptionOpen && (
-          <RichDescriptionEditor
-            value={form.detailedDescription}
-            onChange={(value) => updateForm("detailedDescription", value)}
-          />
-        )}
+        <div
+          aria-hidden={!isSearchKeywordsOpen}
+          inert={!isSearchKeywordsOpen}
+          className={`grid overflow-hidden transition-[grid-template-rows,opacity] duration-300 ease-in-out ${isSearchKeywordsOpen ? "grid-rows-[1fr] opacity-100" : "pointer-events-none grid-rows-[0fr] opacity-0"}`}
+        >
+          <div className="grid min-h-0 gap-2 overflow-hidden">
+            <input type="text" maxLength={1000} value={form.keywords} onChange={(event) => updateForm("keywords", event.target.value)} placeholder="Coin cell, LR302" aria-label="Search keywords" className="rounded-lg border border-[#111]/15 bg-white px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-[#111] outline-none transition placeholder:font-normal placeholder:normal-case placeholder:tracking-normal placeholder:text-[#999] focus:border-[#e00000] focus:ring-2 focus:ring-[#e00000]/10" />
+            <span className="text-[10px] font-normal normal-case tracking-normal text-[#888]">Separate terms with commas. These help customers find the product and are not shown on the store.</span>
+          </div>
+        </div>
+        <div
+          aria-hidden={!isDetailedDescriptionOpen}
+          inert={!isDetailedDescriptionOpen}
+          className={`grid overflow-hidden transition-[grid-template-rows,opacity] duration-300 ease-in-out ${isDetailedDescriptionOpen ? "grid-rows-[1fr] opacity-100" : "pointer-events-none grid-rows-[0fr] opacity-0"}`}
+        >
+          <div className="min-h-0 overflow-hidden">
+            <RichDescriptionEditor
+              value={form.detailedDescription}
+              onChange={(value) => updateForm("detailedDescription", value)}
+            />
+          </div>
+        </div>
       </div>
-
-      <label className="grid gap-2 text-[10px] font-bold uppercase tracking-wider text-[#666] sm:col-span-2">
-        Search keywords (optional)
-        <input type="text" maxLength={1000} value={form.keywords} onChange={(event) => updateForm("keywords", event.target.value)} placeholder="Coin cell, LR302" className="rounded-lg border border-[#111]/15 bg-white px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-[#111] outline-none transition placeholder:font-normal placeholder:normal-case placeholder:tracking-normal placeholder:text-[#999] focus:border-[#e00000] focus:ring-2 focus:ring-[#e00000]/10" />
-        <span className="text-[10px] font-normal normal-case tracking-normal text-[#888]">Separate terms with commas. These help customers find the product and are not shown on the store.</span>
-      </label>
 
       <button disabled={isSavingProduct} className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-[#e00000] px-4 py-3 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-[#b80000] disabled:cursor-wait disabled:opacity-70 sm:col-span-2">
         {isSavingProduct && <span aria-hidden="true" className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />}
