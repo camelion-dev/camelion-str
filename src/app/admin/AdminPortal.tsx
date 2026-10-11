@@ -9,7 +9,7 @@ import type { CatalogProduct } from "@/lib/catalog";
 import type { AdminOrderSummary } from "@/lib/orders";
 import type { AdminCustomerSummary } from "@/lib/orders";
 
-const emptyForm = { name: "", category: "Batteries", price: "", compareAtPrice: "", stock: "0", badge: "", keywords: "", description: "", imageUrl: "", imagePath: "" };
+const emptyForm = { name: "", category: "Batteries", price: "", compareAtPrice: "", stock: "0", badge: "", keywords: "", description: "", detailedDescription: "", imageUrl: "", imagePath: "" };
 
 function formatOrderDate(iso: string) {
   const date = new Date(iso);
@@ -199,7 +199,7 @@ export default function AdminPortal({ initialProducts }: { initialProducts: Cata
 
   const editProduct = (product: CatalogProduct) => {
     setEditingId(product.id);
-    setForm({ name: product.name, category: product.category, price: String(product.price), compareAtPrice: product.compareAtPrice ? String(product.compareAtPrice) : "", stock: String(product.stock), badge: product.badge || "", keywords: product.keywords || "", description: product.description, imageUrl: product.imageUrl || "", imagePath: product.imagePath || "" });
+    setForm({ name: product.name, category: product.category, price: String(product.price), compareAtPrice: product.compareAtPrice ? String(product.compareAtPrice) : "", stock: String(product.stock), badge: product.badge || "", keywords: product.keywords || "", description: product.description, detailedDescription: product.detailedDescription || "", imageUrl: product.imageUrl || "", imagePath: product.imagePath || "" });
     setImagePreview(product.imageUrl || "");
     setIsAddProductModalOpen(true);
   };
@@ -276,6 +276,7 @@ function Catalogue({ products, form, editingId, imagePreview, updateForm, submit
   const [productPendingDelete, setProductPendingDelete] = useState<CatalogProduct | null>(null);
   const [isDeletingProduct, setIsDeletingProduct] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [isDetailedDescriptionOpen, setIsDetailedDescriptionOpen] = useState(false);
   const [draggedProductId, setDraggedProductId] = useState<string | null>(null);
   const cancelDeleteButtonRef = useRef<HTMLButtonElement>(null);
   const categories = Array.from(new Set([
@@ -337,12 +338,28 @@ function Catalogue({ products, form, editingId, imagePreview, updateForm, submit
         {imagePreview && <img src={imagePreview} alt="Product preview" className="mt-1 aspect-video w-full rounded-lg border border-[#111]/10 bg-[#f6f6f6] object-contain" />}
       </label>
 
-      {[["name", "Product name", "text"], ["price", "Price (PKR)", "number"], ["compareAtPrice", "Compare-at price", "number"], ["stock", "Stock units", "number"], ["badge", "Badge", "text"], ["description", "Description", "text"]].map(([key, label, type]) => (
+      {[["name", "Product name", "text"], ["price", "Price (PKR)", "number"], ["compareAtPrice", "Compare-at price", "number"], ["stock", "Stock units", "number"], ["badge", "Badge", "text"]].map(([key, label, type]) => (
         <label key={key} className="grid gap-2 text-[10px] font-bold uppercase tracking-wider text-[#666]">
           {label}
           <input required={key === "name" || key === "price"} type={type} value={form[key as keyof typeof form]} onChange={(event) => updateForm(key as keyof typeof emptyForm, event.target.value)} className="rounded-lg border border-[#111]/15 bg-white px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-[#111] outline-none transition focus:border-[#e00000] focus:ring-2 focus:ring-[#e00000]/10" />
         </label>
       ))}
+
+      <label className="grid gap-2 text-[10px] font-bold uppercase tracking-wider text-[#666] sm:col-span-2">
+        <span className="flex flex-wrap items-center justify-between gap-2">
+          <span>Short description</span>
+          <button type="button" onClick={() => setIsDetailedDescriptionOpen((open) => !open)} className="text-[10px] font-bold uppercase tracking-wider text-[#e00000] underline decoration-[#e00000]/40 underline-offset-4 hover:text-[#b80000]">
+            {isDetailedDescriptionOpen ? "Hide detailed description" : "Add detailed description"}
+          </button>
+        </span>
+        <input type="text" value={form.description} onChange={(event) => updateForm("description", event.target.value)} className="rounded-lg border border-[#111]/15 bg-white px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-[#111] outline-none transition focus:border-[#e00000] focus:ring-2 focus:ring-[#e00000]/10" />
+        {isDetailedDescriptionOpen && (
+          <RichDescriptionEditor
+            value={form.detailedDescription}
+            onChange={(value) => updateForm("detailedDescription", value)}
+          />
+        )}
+      </label>
 
       <label className="grid gap-2 text-[10px] font-bold uppercase tracking-wider text-[#666] sm:col-span-2">
         Category
@@ -501,6 +518,59 @@ function Catalogue({ products, form, editingId, imagePreview, updateForm, submit
         </div>
       )}
     </>
+  );
+}
+
+function RichDescriptionEditor({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  const editorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const editor = editorRef.current;
+    if (editor && document.activeElement !== editor && editor.innerHTML !== value) editor.innerHTML = value;
+  }, [value]);
+
+  const format = (command: string, commandValue?: string) => {
+    editorRef.current?.focus();
+    document.execCommand(command, false, commandValue);
+    if (editorRef.current) onChange(editorRef.current.innerHTML);
+  };
+
+  const buttonClass = "rounded border border-[#111]/15 px-2.5 py-1.5 text-xs font-bold normal-case text-[#333] transition hover:border-[#e00000] hover:text-[#e00000]";
+  const tools: Array<{ label: string; command: string; value?: string; title: string }> = [
+    { label: "B", command: "bold", title: "Bold" },
+    { label: "I", command: "italic", title: "Italic" },
+    { label: "U", command: "underline", title: "Underline" },
+    { label: "H2", command: "formatBlock", value: "h2", title: "Heading" },
+    { label: "H3", command: "formatBlock", value: "h3", title: "Subheading" },
+    { label: "• List", command: "insertUnorderedList", title: "Bulleted list" },
+    { label: "1. List", command: "insertOrderedList", title: "Numbered list" },
+    { label: "Quote", command: "formatBlock", value: "blockquote", title: "Block quote" },
+    { label: "Center", command: "justifyCenter", title: "Center align" },
+  ];
+
+  return (
+    <div className="overflow-hidden rounded-lg border border-[#111]/15 bg-white normal-case tracking-normal text-[#111]">
+      <div role="toolbar" aria-label="Description formatting" className="flex flex-wrap gap-2 border-b border-[#111]/10 bg-[#f8f8f8] p-2">
+        {tools.map(({ label, command, value, title }) => (
+          <button key={command + label} type="button" title={title} aria-label={title} onMouseDown={(event) => event.preventDefault()} onClick={() => format(command, value)} className={buttonClass}>{label}</button>
+        ))}
+        <button type="button" title="Insert link" aria-label="Insert link" onMouseDown={(event) => event.preventDefault()} onClick={() => {
+          const url = window.prompt("Enter a link URL (https:// or mailto:)");
+          if (url) format("createLink", url);
+        }} className={buttonClass}>Link</button>
+      </div>
+      <div
+        ref={editorRef}
+        contentEditable
+        suppressContentEditableWarning
+        role="textbox"
+        aria-label="Detailed product description"
+        aria-multiline="true"
+        onInput={(event) => onChange(event.currentTarget.innerHTML)}
+        className="min-h-48 max-h-[28rem] overflow-y-auto px-3 py-3 text-sm font-normal leading-6 outline-none empty:before:text-[#999] empty:before:content-['Write_a_detailed_product_description...'] [&_h2]:mt-5 [&_h2]:text-xl [&_h2]:font-bold [&_h3]:mt-4 [&_h3]:text-lg [&_h3]:font-bold [&_ol]:list-decimal [&_ol]:pl-6 [&_ul]:list-disc [&_ul]:pl-6"
+      />
+      <p className="border-t border-[#111]/10 bg-[#f8f8f8] px-3 py-2 text-[10px] font-normal normal-case tracking-normal text-[#888]">Use the toolbar to format text. Links are limited to safe web and email addresses.</p>
+    </div>
   );
 }
 

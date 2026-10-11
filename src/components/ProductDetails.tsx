@@ -39,7 +39,8 @@ export function ProductDetails({ product }: { product: CatalogProduct }) {
   }
 
   return (
-    <div className="section-shell grid gap-10 py-10 md:grid-cols-2 md:gap-14 md:py-16">
+    <div className="section-shell py-10 md:py-16">
+      <div className="grid gap-10 md:grid-cols-2 md:gap-14">
       {/* Image gallery */}
       <div>
         <div className="product-visual product-detail-visual overflow-hidden rounded-2xl border-0">
@@ -144,6 +145,16 @@ export function ProductDetails({ product }: { product: CatalogProduct }) {
 
         <p className="mt-4 text-xs text-[var(--muted)]">Cash on Delivery — pay when your order arrives.</p>
       </div>
+      </div>
+      {product.detailedDescription && (
+        <section aria-labelledby="detailed-product-description-title" className="mt-12 border-t border-[var(--border)] pt-9 md:mt-16 md:pt-12">
+          <h2 id="detailed-product-description-title" className="text-2xl font-black uppercase tracking-[-0.03em] md:text-3xl">Product details</h2>
+          <div
+            className="product-rich-description mt-5 max-w-4xl text-sm leading-7 text-[var(--body-gray)] [&_a]:text-[var(--red)] [&_a]:underline [&_blockquote]:my-4 [&_blockquote]:border-l-2 [&_blockquote]:border-[var(--red)] [&_blockquote]:pl-4 [&_h1]:my-5 [&_h1]:text-3xl [&_h1]:font-black [&_h2]:my-4 [&_h2]:text-2xl [&_h2]:font-bold [&_h3]:my-3 [&_h3]:text-xl [&_h3]:font-bold [&_hr]:my-6 [&_li]:my-1 [&_ol]:my-4 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-3 [&_pre]:my-4 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-[var(--soft-gray)] [&_pre]:p-4 [&_table]:my-4 [&_table]:w-full [&_table]:border-collapse [&_td]:border [&_td]:border-[var(--border)] [&_td]:p-2 [&_th]:border [&_th]:border-[var(--border)] [&_th]:p-2 [&_th]:text-left [&_ul]:my-4 [&_ul]:list-disc [&_ul]:pl-6]"
+            dangerouslySetInnerHTML={{ __html: product.detailedDescription }}
+          />
+        </section>
+      )}
     </div>
   );
 }

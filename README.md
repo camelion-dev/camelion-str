@@ -51,6 +51,10 @@ Before deploying changes that use product search keywords, run [`supabase/produc
 
 Before deploying product reordering, run [`supabase/catalog_order.sql`](supabase/catalog_order.sql) in Supabase Dashboard > SQL Editor. It adds the persistent `sortOrder` field, preserves the current newest-first catalogue order when first applied, and installs the admin-only database function used to save reordered products. The storefront's Featured order follows this field; the Newest option continues to sort by creation date.
 
+## Detailed product descriptions
+
+Before deploying rich product descriptions, run [`supabase/product_detailed_description.sql`](supabase/product_detailed_description.sql) in Supabase Dashboard > SQL Editor. It adds an optional formatted-description field without changing the existing short description. Product details entered in the admin are sanitized before storage and display.
+
 ## Supabase Storage
 
 1. Open Supabase Dashboard > SQL Editor.

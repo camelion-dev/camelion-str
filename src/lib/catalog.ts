@@ -1,3 +1,5 @@
+import { sanitizeProductDescription } from "@/lib/product-description";
+
 export type CatalogProduct = {
   id: string;
   slug: string;
@@ -11,6 +13,7 @@ export type CatalogProduct = {
   stock: number;
   active: boolean;
   description: string;
+  detailedDescription?: string;
   imageUrl?: string;
   imagePath?: string;
   createdAt?: string;
@@ -53,6 +56,7 @@ function mapProduct(row: Record<string, unknown>): CatalogProduct {
     stock: Number(row.stock || 0),
     active: Boolean(row.isActive),
     description: String(row.description || ""),
+    detailedDescription: row.detailedDescription ? sanitizeProductDescription(String(row.detailedDescription)) : undefined,
     imageUrl,
     imagePath,
     createdAt: row.createdAt ? String(row.createdAt) : undefined,
@@ -123,7 +127,7 @@ export async function createCatalogProduct(input: Omit<CatalogProduct, "id" | "s
   const positionResponse = await supabase("Product?select=sortOrder&order=sortOrder.desc&limit=1");
   const positions = await positionResponse.json() as Array<{ sortOrder: number }>;
   const sortOrder = (positions[0]?.sortOrder ?? -1) + 1;
-  const response = await supabase("Product", { method: "POST", headers: { Prefer: "return=representation" }, body: JSON.stringify({ id, name: input.name, slug, description: input.description, price: input.price, compareAtPrice: input.compareAtPrice ?? null, badge: input.badge ?? null, keywords: input.keywords?.trim() || null, visual: input.visual, stock: input.stock, isActive: input.active, imageUrl: input.imageUrl ?? null, imagePath: input.imagePath ?? null, sortOrder, categoryId: await categoryId(input.category) }) });
+  const response = await supabase("Product", { method: "POST", headers: { Prefer: "return=representation" }, body: JSON.stringify({ id, name: input.name, slug, description: input.description, detailedDescription: input.detailedDescription ? sanitizeProductDescription(input.detailedDescription) : null, price: input.price, compareAtPrice: input.compareAtPrice ?? null, badge: input.badge ?? null, keywords: input.keywords?.trim() || null, visual: input.visual, stock: input.stock, isActive: input.active, imageUrl: input.imageUrl ?? null, imagePath: input.imagePath ?? null, sortOrder, categoryId: await categoryId(input.category) }) });
   const rows = await response.json() as Array<Record<string, unknown>>;
   const createdId = rows[0]?.id ? String(rows[0].id) : id;
   const createdSlug = rows[0]?.slug ? String(rows[0].slug) : slug;
@@ -134,6 +138,7 @@ export async function updateCatalogProduct(id: string, input: Partial<Omit<Catal
   const payload: Record<string, unknown> = {};
   if (input.name !== undefined) payload.name = input.name;
   if (input.description !== undefined) payload.description = input.description;
+  if (input.detailedDescription !== undefined) payload.detailedDescription = input.detailedDescription ? sanitizeProductDescription(input.detailedDescription) : null;
   if (input.price !== undefined) payload.price = input.price;
   if (input.compareAtPrice !== undefined) payload.compareAtPrice = input.compareAtPrice ?? null;
   if (input.badge !== undefined) payload.badge = input.badge ?? null;
