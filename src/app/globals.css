@@ -56,15 +56,15 @@ body {
 }
 
 ::view-transition-old(root) {
-  animation: site-page-exit 260ms cubic-bezier(0.55, 0.06, 0.68, 0.19) both;
+  animation: site-page-exit 750ms cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
 ::view-transition-old(.site-page-exit) {
-  animation: site-page-exit 260ms cubic-bezier(0.55, 0.06, 0.68, 0.19) both;
+  animation: site-page-exit 750ms cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
 ::view-transition-new(.site-page-enter) {
-  animation: site-page-enter 620ms cubic-bezier(0.22, 0.61, 0.36, 1) 50ms both;
+  animation: site-page-enter 1200ms cubic-bezier(0.22, 1, 0.36, 1) 60ms both;
 }
 
 @keyframes site-page-exit {
