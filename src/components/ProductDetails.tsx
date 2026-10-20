@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { startTransition, useState } from "react";
 import type { CatalogProduct } from "@/lib/catalog";
 import { useCart } from "@/context/CartContext";
 import { useFavorites } from "@/context/FavoritesContext";
@@ -35,7 +35,7 @@ export function ProductDetails({ product }: { product: CatalogProduct }) {
   function handleBuyNow() {
     if (outOfStock) return;
     addItem(product.id, quantity, product.stock);
-    router.push("/checkout");
+    startTransition(() => router.push("/checkout"));
   }
 
   return (

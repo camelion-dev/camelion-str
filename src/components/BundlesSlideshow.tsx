@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 
 type Slide = { eyebrow: string; heading: string; body: string; ctaLabel: string; ctaHref: string };
 
@@ -140,12 +141,12 @@ export function BundlesSlideshow() {
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/70">{slide.eyebrow}</p>
                 <h3 className="mt-2 text-sm font-black uppercase leading-tight tracking-wide md:text-base">{slide.heading}</h3>
                 <p className="mt-3 text-xs text-white/80 md:text-sm">{slide.body}</p>
-                <a
+                <Link
                   href={slide.ctaHref}
                   className="mt-4 inline-block bg-white px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-[var(--red)] transition-colors hover:bg-black hover:text-white md:text-xs"
                 >
                   {slide.ctaLabel} →
-                </a>
+                </Link>
               </div>
             ))}
           </div>

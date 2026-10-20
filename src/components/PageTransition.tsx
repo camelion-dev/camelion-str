@@ -7,3 +7,11 @@ export const pageTransitionProps = {
   exit: "site-page-exit",
   default: "none",
 } as const;
+
+export const ContentTransition = ViewTransition;
+
+export const contentTransitionProps = {
+  enter: "site-content-enter",
+  exit: "site-content-exit",
+  default: "none",
+} as const;

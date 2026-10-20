@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { type FormEvent, useEffect, useRef, useState } from "react";
+import { startTransition, type FormEvent, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { useFavorites } from "@/context/FavoritesContext";
@@ -56,7 +56,7 @@ export function Header({ categories, searchProducts = [] }: { categories?: strin
     if (selectedSearchCategory !== "all") params.set("category", selectedSearchCategory);
     if (showOffersOnly) params.set("offers", "true");
     const query = params.toString();
-    router.push(query ? `/?${query}#all-products` : "/#all-products");
+    startTransition(() => router.push(query ? `/?${query}#all-products` : "/#all-products"));
     setMobileSearchOpen(false);
     setDesktopSearchHovered(false);
     setDesktopSearchFocused(false);

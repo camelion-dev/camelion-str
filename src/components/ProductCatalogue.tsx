@@ -1,12 +1,14 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
+import { startTransition, useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
+import Link from "next/link";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import type { CatalogProduct } from "@/lib/catalog";
 import { getProductSearchRelevance } from "@/lib/product-search";
 import { ProductCard } from "@/components/ProductCard";
+import { ContentTransition, contentTransitionProps } from "@/components/PageTransition";
 
 const PAGE_SIZE = 12;
 const MOBILE_FILTER_TRANSITION_MS = 280;
@@ -133,8 +135,10 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
     const params = new URLSearchParams(searchParams.toString());
     if (value === "all" || value === "featured") params.delete(key);
     else params.set(key, value);
-    router.replace(`/?${params.toString()}#all-products`, { scroll: false });
-    setCurrentPage(1);
+    startTransition(() => {
+      router.replace(`/?${params.toString()}#all-products`, { scroll: false });
+      setCurrentPage(1);
+    });
   };
 
   const filteredProducts = products
@@ -218,11 +222,13 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
   }, []);
 
   const resetFilters = () => {
-    router.replace("/#all-products", { scroll: false });
-    setMinPrice(0);
-    setMaxPrice(maximumPrice);
-    setAvailability("all");
-    setCurrentPage(1);
+    startTransition(() => {
+      router.replace("/#all-products", { scroll: false });
+      setMinPrice(0);
+      setMaxPrice(maximumPrice);
+      setAvailability("all");
+      setCurrentPage(1);
+    });
   };
 
   useEffect(() => {
@@ -347,11 +353,12 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
     return () => context.revert();
   }, [availability, currentPage, maxPrice, minPrice, searchTerm, selectedCategory, selectedSort]);
 
+  const goToPage = (page: number) => startTransition(() => setCurrentPage(page));
   const renderPageButton = (page: number) => (
     <button
       type="button"
       key={page}
-      onClick={() => setCurrentPage(page)}
+      onClick={() => goToPage(page)}
       aria-current={currentPage === page ? "page" : undefined}
       className={`flex h-11 w-11 items-center justify-center rounded-full ${currentPage === page ? "bg-[var(--red)] font-bold text-white" : "text-[var(--foreground)]"}`}
     >
@@ -361,6 +368,7 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
   const firstVisiblePage = Math.max(1, Math.min(currentPage - 1, totalPages - 2));
   const visiblePageNumbers = Array.from({ length: Math.min(totalPages, 3) }, (_, index) => firstVisiblePage + index);
   const lastVisiblePage = visiblePageNumbers[visiblePageNumbers.length - 1];
+  const resultsTransitionKey = `${currentPage}:${selectedCategory}:${searchTerm}:${selectedSort}:${offersOnly}:${availability}`;
 
   return (
     <>
@@ -411,7 +419,7 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
               </div>
               <div className="mobile-filter-controls">
                 <div className="mt-6 border-t border-[var(--border)] pt-5"><label htmlFor="catalogue-category" className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--muted)]">Collection</label><select id="catalogue-category" value={selectedCategory} onChange={(event) => updateUrl("category", event.target.value)} className="catalogue-category-select mt-3 w-full appearance-none px-3 py-2 text-[11px] font-medium text-[var(--foreground)] outline-none transition duration-200 focus:border-[var(--red)] focus:ring-2 focus:ring-[var(--red)]/10"><option value="all">All products ({products.length})</option>{categories.map((category) => <option key={category} value={category}>{category} ({products.filter((product) => product.category === category).length})</option>)}</select></div>
-                <div className="mt-6 border-t border-[var(--border)] pt-5"><p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--muted)]">Availability</p><div className="mt-3 grid gap-3">{([{ value: "in-stock", label: "In stock", count: products.filter((product) => product.stock > 0).length }, { value: "out-of-stock", label: "Out of stock", count: products.filter((product) => product.stock <= 0).length }] as const).map((option) => <button key={option.value} onClick={() => { setAvailability(availability === option.value ? "all" : option.value); setCurrentPage(1); }} className={`flex items-center justify-between text-left text-[11px] ${availability === option.value ? "font-bold text-[var(--foreground)]" : "text-[var(--body-gray)] hover:text-[var(--red)]"}`}><span className="flex items-center gap-2"><span className={`h-3 w-3 border border-[var(--border)] ${availability === option.value ? "bg-[var(--red)]" : "bg-white/70"}`} />{option.label}</span><span className="text-[10px] text-[var(--muted)]">{option.count}</span></button>)}</div></div>
+                <div className="mt-6 border-t border-[var(--border)] pt-5"><p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--muted)]">Availability</p><div className="mt-3 grid gap-3">{([{ value: "in-stock", label: "In stock", count: products.filter((product) => product.stock > 0).length }, { value: "out-of-stock", label: "Out of stock", count: products.filter((product) => product.stock <= 0).length }] as const).map((option) => <button key={option.value} onClick={() => startTransition(() => { setAvailability(availability === option.value ? "all" : option.value); setCurrentPage(1); })} className={`flex items-center justify-between text-left text-[11px] ${availability === option.value ? "font-bold text-[var(--foreground)]" : "text-[var(--body-gray)] hover:text-[var(--red)]"}`}><span className="flex items-center gap-2"><span className={`h-3 w-3 border border-[var(--border)] ${availability === option.value ? "bg-[var(--red)]" : "bg-white/70"}`} />{option.label}</span><span className="text-[10px] text-[var(--muted)]">{option.count}</span></button>)}</div></div>
                 <div className="mt-6 border-t border-[var(--border)] pt-5"><div className="flex justify-between"><p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--muted)]">Price</p><span className="text-[10px] text-[var(--body-gray)]">Rs. {maxPrice.toLocaleString()}</span></div><input aria-label="Maximum price" type="range" min="0" max={maximumPrice} step="100" value={maxPrice} onChange={(event) => { setMaxPrice(Number(event.target.value)); setCurrentPage(1); }} className="mt-5 w-full accent-[var(--red)]" /><div className="mt-2 flex justify-between text-[10px] text-[var(--muted)]"><span>Rs. 0</span><span>Rs. {maximumPrice.toLocaleString()}</span></div></div>
               </div>
               <div className="mobile-filter-actions md:hidden">
@@ -419,17 +427,21 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
               </div>
             </aside>
             <div className="catalogue-results min-w-0">
+              <ContentTransition key={resultsTransitionKey} {...contentTransitionProps}>
+              <div className="min-w-0">
               <div className="mb-2 flex flex-wrap items-center justify-between gap-4 border-b border-[var(--border)] pb-2 md:mb-6 md:pb-4"><span className="text-[10px] font-medium uppercase tracking-[0.14em] text-[var(--muted)]">Showing {visibleProducts.length} of {filteredProducts.length}</span><label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.14em]">Sort by<select value={selectedSort} onChange={(event) => updateUrl("sort", event.target.value)} className="border-0 bg-transparent py-1 text-[10px] font-bold normal-case tracking-normal outline-none"><option value="featured">Featured</option><option value="newest">Newest</option><option value="price-low">Price: Low to high</option><option value="price-high">Price: High to low</option><option value="name-az">Name: A to Z</option><option value="name-za">Name: Z to A</option></select></label></div>
               {visibleProducts.length ? <div key={currentPage} className="catalogue-product-grid grid gap-4 sm:gap-5">{visibleProducts.map((product, index) => <div key={product.id} className="catalogue-page-item" style={{ animationDelay: `${Math.min(index * 20, 220)}ms` }}><ProductCard product={product} plain /></div>)}</div> : <div className="border border-dashed border-[var(--border)] bg-white/70 px-6 py-20 text-center"><h3 className="text-xl font-black uppercase">No products found</h3><p className="mt-2 text-sm text-[var(--body-gray)]">Try widening your price range or clearing the category filter.</p><button onClick={resetFilters} className="mt-5 bg-[var(--red)] px-5 py-3 text-xs font-bold uppercase tracking-wider text-white">Reset filters</button></div>}
               {totalPages > 1 && (
                 <nav aria-label="Product pages" className="mt-12 flex items-center justify-center gap-3 text-[10px] font-medium sm:gap-6">
-                  <button type="button" aria-label="Previous page" disabled={currentPage === 1} onClick={() => setCurrentPage((page) => Math.max(1, page - 1))} className="flex h-11 w-11 items-center justify-center text-[var(--muted)] disabled:opacity-30">‹</button>
+                  <button type="button" aria-label="Previous page" disabled={currentPage === 1} onClick={() => goToPage(Math.max(1, currentPage - 1))} className="flex h-11 w-11 items-center justify-center text-[var(--muted)] disabled:opacity-30">‹</button>
                   {visiblePageNumbers.map(renderPageButton)}
                   {lastVisiblePage < totalPages - 1 && <span aria-label={`${totalPages - lastVisiblePage - 1} later page${lastVisiblePage === totalPages - 2 ? "" : "s"} omitted`} className="px-1 text-[var(--muted)]">…</span>}
                   {lastVisiblePage < totalPages && renderPageButton(totalPages)}
-                  <button type="button" aria-label="Next page" onClick={() => setCurrentPage((page) => page === totalPages ? 1 : page + 1)} className="flex h-11 w-11 items-center justify-center text-[var(--muted)]">›</button>
+                  <button type="button" aria-label="Next page" onClick={() => goToPage(currentPage === totalPages ? 1 : currentPage + 1)} className="flex h-11 w-11 items-center justify-center text-[var(--muted)]">›</button>
                 </nav>
               )}
+              </div>
+              </ContentTransition>
             </div>
           </div>
           {recommendations.length > 0 && (<section className="mt-20 border-t border-[var(--border)] pt-12">
@@ -492,9 +504,9 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
                   <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/70">{offer.eyebrow}</p>
                   <h3 className="mt-2 text-sm font-black uppercase leading-tight tracking-wide md:text-base">{offer.title}</h3>
                   <p className="mt-3 text-xs text-white/80 md:text-sm">{offer.text}</p>
-                  <a href={offer.href} className="mt-4 inline-block bg-white px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-[var(--red)] transition-colors hover:bg-black hover:text-white md:text-xs">
+                  <Link href={offer.href} className="mt-4 inline-block bg-white px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-[var(--red)] transition-colors hover:bg-black hover:text-white md:text-xs">
                     {offer.cta} →
-                  </a>
+                  </Link>
                 </div>
               ))}
             </div>

@@ -32,6 +32,7 @@
 
 html {
   font-size: 100%;
+  scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
 }
 
@@ -45,13 +46,19 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+@view-transition {
+  navigation: auto;
+}
+
 ::view-transition {
   pointer-events: none;
 }
 
 ::view-transition-group(root),
 ::view-transition-group(.site-page-enter),
-::view-transition-group(.site-page-exit) {
+::view-transition-group(.site-page-exit),
+::view-transition-group(.site-content-enter),
+::view-transition-group(.site-content-exit) {
   animation: none;
 }
 
@@ -59,11 +66,23 @@ body {
   animation: site-page-exit 750ms cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
+::view-transition-new(root) {
+  animation: site-page-enter 1200ms cubic-bezier(0.22, 1, 0.36, 1) 60ms both;
+}
+
 ::view-transition-old(.site-page-exit) {
   animation: site-page-exit 750ms cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
 ::view-transition-new(.site-page-enter) {
+  animation: site-page-enter 1200ms cubic-bezier(0.22, 1, 0.36, 1) 60ms both;
+}
+
+::view-transition-old(.site-content-exit) {
+  animation: site-page-exit 750ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+::view-transition-new(.site-content-enter) {
   animation: site-page-enter 1200ms cubic-bezier(0.22, 1, 0.36, 1) 60ms both;
 }
 
@@ -90,12 +109,21 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
   ::view-transition-group(.site-page-enter),
   ::view-transition-group(.site-page-exit),
+  ::view-transition-group(.site-content-enter),
+  ::view-transition-group(.site-content-exit),
   ::view-transition-group(root),
   ::view-transition-old(root),
+  ::view-transition-new(root),
   ::view-transition-old(.site-page-exit),
-  ::view-transition-new(.site-page-enter) {
+  ::view-transition-new(.site-page-enter),
+  ::view-transition-old(.site-content-exit),
+  ::view-transition-new(.site-content-enter) {
     animation-duration: 0s !important;
     animation-delay: 0s !important;
   }

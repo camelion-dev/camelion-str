@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, startTransition, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PageTransition, pageTransitionProps } from "@/components/PageTransition";
@@ -28,7 +28,7 @@ export default function AdminLoginPage() {
       setLoading(false);
       return;
     }
-    router.push("/admin");
+    startTransition(() => router.push("/admin"));
   }
 
   return (

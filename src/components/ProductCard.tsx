@@ -54,7 +54,7 @@ export function ProductCard({ product, compact = false, plain = false, marquee =
         >
           <span className="sr-only">View {name}</span>
         </Link>
-        <div className={`product-card-media z-0 ${plain ? "plain-card-media" : ""}`} onClick={(event) => { if (plain && !(event.target instanceof HTMLButtonElement)) window.location.href = `/products/${product.slug}`; }}>
+        <div className={`product-card-media z-0 ${plain ? "plain-card-media" : ""}`}>
           {product.imageUrl ? <div role="img" aria-label={name} className="absolute inset-0 bg-contain bg-center bg-no-repeat" style={{ backgroundImage: `url(${product.imageUrl})` }} /> : <div className={`${visual} product-fallback-visual`} />}
           {plain && <button
             type="button"
@@ -67,7 +67,7 @@ export function ProductCard({ product, compact = false, plain = false, marquee =
         </div>
         <div className={`product-card-details z-10 px-4 py-3 ${plain ? "plain-card-details bg-white text-[var(--foreground)]" : "bg-[var(--red)] text-white"} ${marquee ? "marquee-card-details" : ""}`}>
           <div className="product-card-content">
-            <h3 className="product-card-title line-clamp-2">{name}</h3>
+            <h3 className="product-card-title line-clamp-2"><Link href={`/products/${product.slug}`} className="transition-colors hover:text-[var(--red)]">{name}</Link></h3>
             <div className={`product-card-price-row ${marquee ? "marquee-card-price" : ""}`}>
               <p className="product-card-price whitespace-nowrap">Rs. {price.toLocaleString()}</p>
               {compareAtPrice && <p className={`product-card-compare whitespace-nowrap line-through ${plain ? "text-[var(--muted)]" : "text-white/65"}`}>Rs. {compareAtPrice.toLocaleString()}</p>}

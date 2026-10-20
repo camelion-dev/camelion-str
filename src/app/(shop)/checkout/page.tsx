@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { startTransition, useEffect, useMemo, useState, type FormEvent } from "react";
 import { useCart } from "@/context/CartContext";
 import type { CatalogProduct } from "@/lib/catalog";
 import { calculateDeliveryFee, calculateSubtotal, calculateTotal } from "@/lib/pricing";
@@ -130,7 +130,7 @@ export default function CheckoutPage() {
         return;
       }
       clearCart();
-      router.push(`/order/success/${data.order.id}`);
+      startTransition(() => router.push(`/order/success/${data.order.id}`));
     } catch {
       setSubmitError("We couldn't reach the server. Your cart has been kept intact — please try again.");
       setSubmitting(false);
