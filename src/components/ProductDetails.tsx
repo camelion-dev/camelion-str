@@ -5,6 +5,7 @@ import { startTransition, useState } from "react";
 import type { CatalogProduct } from "@/lib/catalog";
 import { useCart } from "@/context/CartContext";
 import { useFavorites } from "@/context/FavoritesContext";
+import { startNavigationLoading } from "@/lib/navigation-loading";
 
 export function ProductDetails({ product }: { product: CatalogProduct }) {
   const router = useRouter();
@@ -35,6 +36,7 @@ export function ProductDetails({ product }: { product: CatalogProduct }) {
   function handleBuyNow() {
     if (outOfStock) return;
     addItem(product.id, quantity, product.stock);
+    startNavigationLoading("/checkout");
     startTransition(() => router.push("/checkout"));
   }
 

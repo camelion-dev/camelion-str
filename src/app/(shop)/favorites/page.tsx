@@ -1,10 +1,11 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/LoadingLink";
 import { useEffect, useMemo, useState } from "react";
 import { useFavorites } from "@/context/FavoritesContext";
 import type { CatalogProduct } from "@/lib/catalog";
 import { ProductCard } from "@/components/ProductCard";
+import { LoadingIndicator } from "@/components/LoadingIndicator";
 import { PageTransition, pageTransitionProps } from "@/components/PageTransition";
 
 export default function FavoritesPage() {
@@ -40,7 +41,7 @@ export default function FavoritesPage() {
   }, [hydrated, idsKey]);
 
   if (!hydrated || loading) {
-    return <PageTransition key="favorites" {...pageTransitionProps}><p className="section-shell py-24 text-center text-sm text-[var(--muted)]">Loading favorites...</p></PageTransition>;
+    return <PageTransition key="favorites" {...pageTransitionProps}><div className="section-shell py-24 text-center"><LoadingIndicator label="Loading your favorites" /></div></PageTransition>;
   }
 
   if (ids.length === 0) {

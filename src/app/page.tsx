@@ -6,7 +6,7 @@ import { PromoCarousel } from "@/components/PromoCarousel";
 import { CollectionCategoryCarousel } from "@/components/CollectionCategoryCarousel";
 import { PageTransition, pageTransitionProps } from "@/components/PageTransition";
 import { Suspense } from "react";
-import Link from "next/link";
+import Link from "@/components/LoadingLink";
 
 const collectionImagePaths: Record<string, string> = {
   Batteries: "/assets/tiles/batteries.png",

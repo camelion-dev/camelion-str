@@ -1,10 +1,12 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/LoadingLink";
+import { LoadingIndicator } from "@/components/LoadingIndicator";
 import { startTransition, type FormEvent, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { useFavorites } from "@/context/FavoritesContext";
+import { startNavigationLoading, startViewLoading } from "@/lib/navigation-loading";
 import { compareProductSearchRelevance, getProductSearchRelevance } from "@/lib/product-search";
 
 type SearchProduct = {
@@ -56,7 +58,9 @@ export function Header({ categories, searchProducts = [] }: { categories?: strin
     if (selectedSearchCategory !== "all") params.set("category", selectedSearchCategory);
     if (showOffersOnly) params.set("offers", "true");
     const query = params.toString();
-    startTransition(() => router.push(query ? `/?${query}#all-products` : "/#all-products"));
+    const href = query ? `/?${query}#all-products` : "/#all-products";
+    startNavigationLoading(href);
+    startTransition(() => router.push(href));
     setMobileSearchOpen(false);
     setDesktopSearchHovered(false);
     setDesktopSearchFocused(false);
@@ -117,6 +121,7 @@ export function Header({ categories, searchProducts = [] }: { categories?: strin
   }, [desktopSearchOpen, mobileSearchOpen, searchProductsLoaded]);
 
   const toggleMenu = () => {
+    if (!mobileMenuOpen) startViewLoading();
     setMobileSearchOpen(false);
     setMobileMenuOpen((open) => !open);
   };
@@ -182,7 +187,7 @@ export function Header({ categories, searchProducts = [] }: { categories?: strin
             <div className="desktop-search-panel-content">
               {(normalizedSearchTerm || selectedSearchCategory !== "all" || showOffersOnly) && <section className="desktop-search-results" aria-label="Matching products" aria-live="polite">
                 <p className="desktop-search-overline">Products <span>({mobileSearchMatches.length})</span></p>
-                {searchProductsLoading && <p className="desktop-search-status">Loading products…</p>}
+                {searchProductsLoading && <p className="desktop-search-status"><LoadingIndicator label="Finding products" /></p>}
                 {searchProductsError && <div className="desktop-search-status"><p>Products couldn’t be loaded.</p><button type="button" onClick={() => { setSearchProductsLoaded(false); setSearchProductsError(false); }}>Try again</button></div>}
                 {!searchProductsLoading && !searchProductsError && mobileSearchMatches.length > 0 && mobileSearchMatches.map((product, index) => <Link key={product.slug} href={`/products/${product.slug}`} className="desktop-search-product" style={{ animationDelay: `${Math.min(index * 85, 680)}ms` }} onClick={() => { setSearchTerm(""); setDesktopSearchHovered(false); setDesktopSearchFocused(false); }}>
                   <span className="desktop-search-product-image">{product.imageUrl ? <img src={product.imageUrl} alt="" /> : <span>{product.name.slice(0, 1)}</span>}</span>
@@ -205,6 +210,7 @@ export function Header({ categories, searchProducts = [] }: { categories?: strin
             aria-expanded={mobileSearchOpen}
             aria-controls="mobile-search-layer"
             onClick={() => {
+              if (!mobileSearchOpen) startViewLoading();
               setMobileMenuOpen(false);
               setMobileSearchOpen((open) => !open);
             }}
@@ -259,7 +265,7 @@ export function Header({ categories, searchProducts = [] }: { categories?: strin
           <div className="mobile-search-panel-content">
             {(normalizedSearchTerm || selectedSearchCategory !== "all" || showOffersOnly) && <section className="mobile-search-results" aria-label="Matching products" aria-live="polite">
               <p className="mobile-search-overline">Products <span>({mobileSearchMatches.length})</span></p>
-              {searchProductsLoading && <p className="mobile-search-status">Loading products…</p>}
+              {searchProductsLoading && <p className="mobile-search-status"><LoadingIndicator label="Finding products" /></p>}
               {searchProductsError && <div className="mobile-search-status"><p>Products couldn’t be loaded.</p><button type="button" onClick={() => { setSearchProductsLoaded(false); setSearchProductsError(false); }}>Try again</button></div>}
               {!searchProductsLoading && !searchProductsError && mobileSearchMatches.length > 0 && mobileSearchMatches.map((product, index) => <Link key={product.slug} href={`/products/${product.slug}`} className="mobile-search-product" style={{ animationDelay: `${Math.min(index * 85, 680)}ms` }} onClick={closeSearch}>
                 <span className="mobile-search-product-image">{product.imageUrl ? <img src={product.imageUrl} alt="" /> : <span>{product.name.slice(0, 1)}</span>}</span>

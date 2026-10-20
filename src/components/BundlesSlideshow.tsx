@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import Link from "@/components/LoadingLink";
 
 type Slide = { eyebrow: string; heading: string; body: string; ctaLabel: string; ctaHref: string };
 

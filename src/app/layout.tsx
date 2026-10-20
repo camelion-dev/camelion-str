@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { connection } from "next/server";
 import { Inter } from "next/font/google";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import { CartProvider } from "@/context/CartContext";
 import { FavoritesProvider } from "@/context/FavoritesContext";
+import { NavigationLoader } from "@/components/NavigationLoader";
 import "./globals.css";
 
 const inter = Inter({
@@ -27,6 +28,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <CartProvider>
           <FavoritesProvider>
             {children}
+            <Suspense fallback={null}>
+              <NavigationLoader />
+            </Suspense>
           </FavoritesProvider>
         </CartProvider>
       </body>

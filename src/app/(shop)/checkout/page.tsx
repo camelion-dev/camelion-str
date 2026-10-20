@@ -1,12 +1,14 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/LoadingLink";
 import { useRouter } from "next/navigation";
 import { startTransition, useEffect, useMemo, useState, type FormEvent } from "react";
 import { useCart } from "@/context/CartContext";
 import type { CatalogProduct } from "@/lib/catalog";
 import { calculateDeliveryFee, calculateSubtotal, calculateTotal } from "@/lib/pricing";
 import { PageTransition, pageTransitionProps } from "@/components/PageTransition";
+import { LoadingIndicator } from "@/components/LoadingIndicator";
+import { startNavigationLoading } from "@/lib/navigation-loading";
 
 type FormState = {
   name: string;
@@ -130,6 +132,7 @@ export default function CheckoutPage() {
         return;
       }
       clearCart();
+      startNavigationLoading(`/order/success/${data.order.id}`);
       startTransition(() => router.push(`/order/success/${data.order.id}`));
     } catch {
       setSubmitError("We couldn't reach the server. Your cart has been kept intact — please try again.");
@@ -138,7 +141,7 @@ export default function CheckoutPage() {
   }
 
   if (!hydrated || loading) {
-    return <PageTransition key="checkout" {...pageTransitionProps}><p className="section-shell py-24 text-center text-sm text-[var(--muted)]">Loading checkout...</p></PageTransition>;
+    return <PageTransition key="checkout" {...pageTransitionProps}><div className="section-shell py-24 text-center"><LoadingIndicator label="Loading checkout" /></div></PageTransition>;
   }
 
   if (items.length === 0) {

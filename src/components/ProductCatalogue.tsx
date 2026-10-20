@@ -2,11 +2,12 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { startTransition, useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
-import Link from "next/link";
+import Link from "@/components/LoadingLink";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import type { CatalogProduct } from "@/lib/catalog";
 import { getProductSearchRelevance } from "@/lib/product-search";
+import { startNavigationLoading, startViewLoading } from "@/lib/navigation-loading";
 import { ProductCard } from "@/components/ProductCard";
 import { ContentTransition, contentTransitionProps } from "@/components/PageTransition";
 
@@ -135,8 +136,10 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
     const params = new URLSearchParams(searchParams.toString());
     if (value === "all" || value === "featured") params.delete(key);
     else params.set(key, value);
+    const href = `/?${params.toString()}#all-products`;
+    startNavigationLoading(href);
     startTransition(() => {
-      router.replace(`/?${params.toString()}#all-products`, { scroll: false });
+      router.replace(href, { scroll: false });
       setCurrentPage(1);
     });
   };
@@ -213,6 +216,7 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
   }, []);
 
   const openMobileFilters = useCallback(() => {
+    startViewLoading();
     if (mobileFilterCloseTimerRef.current !== null) {
       window.clearTimeout(mobileFilterCloseTimerRef.current);
       mobileFilterCloseTimerRef.current = null;
@@ -222,6 +226,7 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
   }, []);
 
   const resetFilters = () => {
+    startNavigationLoading("/#all-products");
     startTransition(() => {
       router.replace("/#all-products", { scroll: false });
       setMinPrice(0);
@@ -353,7 +358,11 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
     return () => context.revert();
   }, [availability, currentPage, maxPrice, minPrice, searchTerm, selectedCategory, selectedSort]);
 
-  const goToPage = (page: number) => startTransition(() => setCurrentPage(page));
+  const goToPage = (page: number) => {
+    if (page === currentPage) return;
+    startViewLoading();
+    startTransition(() => setCurrentPage(page));
+  };
   const renderPageButton = (page: number) => (
     <button
       type="button"

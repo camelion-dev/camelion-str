@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/components/LoadingLink";
 import { getCatalogProductBySlug } from "@/lib/catalog";
 import { ProductDetails } from "@/components/ProductDetails";
 import { PageTransition, pageTransitionProps } from "@/components/PageTransition";

@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/LoadingLink";
 import { useState } from "react";
 import type { CatalogProduct } from "@/lib/catalog";
 import { useCart } from "@/context/CartContext";

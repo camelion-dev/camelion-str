@@ -1,9 +1,10 @@
 "use client";
 
 import { FormEvent, startTransition, useState } from "react";
-import Link from "next/link";
+import Link from "@/components/LoadingLink";
 import { useRouter } from "next/navigation";
 import { PageTransition, pageTransitionProps } from "@/components/PageTransition";
+import { startNavigationLoading } from "@/lib/navigation-loading";
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState("");
@@ -28,6 +29,7 @@ export default function AdminLoginPage() {
       setLoading(false);
       return;
     }
+    startNavigationLoading("/admin");
     startTransition(() => router.push("/admin"));
   }
 

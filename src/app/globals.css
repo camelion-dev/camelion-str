@@ -46,6 +46,82 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+.site-navigation-loader {
+  position: fixed;
+  z-index: 10000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgb(255 255 255 / 96%);
+  backdrop-filter: blur(8px);
+  animation: navigation-loader-in 220ms ease-out both;
+}
+
+.site-navigation-loader.is-leaving {
+  animation: navigation-loader-out 240ms ease-in both;
+}
+
+.site-navigation-loader-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+.site-navigation-loader-logo {
+  width: 142px;
+  height: auto;
+  object-fit: contain;
+}
+
+.site-navigation-loader-spinner {
+  display: inline-block;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  border: 3px solid #ededed;
+  border-top-color: var(--red);
+  border-radius: 50%;
+  animation: camelion-loader-spin 900ms linear infinite;
+}
+
+.site-navigation-loader-label {
+  color: var(--body-gray);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.camelion-inline-loader {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.camelion-inline-loader .site-navigation-loader-spinner {
+  width: 20px;
+  height: 20px;
+  border-width: 2px;
+}
+
+@keyframes camelion-loader-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes navigation-loader-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes navigation-loader-out {
+  from { opacity: 1; }
+  to { opacity: 0; visibility: hidden; }
+}
+
 @view-transition {
   navigation: auto;
 }
@@ -139,6 +215,12 @@ body {
   .cart-summary-enter,
   .cart-heading-enter {
     animation: none;
+  }
+
+  .site-navigation-loader,
+  .site-navigation-loader.is-leaving,
+  .site-navigation-loader-spinner {
+    animation: none !important;
   }
 }
 

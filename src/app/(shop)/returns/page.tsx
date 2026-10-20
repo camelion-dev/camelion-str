@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/LoadingLink";
 import { PageTransition, pageTransitionProps } from "@/components/PageTransition";
 
 export default function ReturnsPage() {

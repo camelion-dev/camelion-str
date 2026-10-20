@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/LoadingLink";
 import { startTransition, useEffect, useState, type FormEvent } from "react";
 import { PageTransition, pageTransitionProps } from "@/components/PageTransition";
 

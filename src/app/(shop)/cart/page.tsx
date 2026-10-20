@@ -1,10 +1,11 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/LoadingLink";
 import { useEffect, useMemo, useState } from "react";
 import { useCart } from "@/context/CartContext";
 import type { CatalogProduct } from "@/lib/catalog";
 import { calculateDeliveryFee, calculateSubtotal, calculateTotal } from "@/lib/pricing";
+import { LoadingIndicator } from "@/components/LoadingIndicator";
 import { PageTransition, pageTransitionProps } from "@/components/PageTransition";
 
 export default function CartPage() {
@@ -63,7 +64,7 @@ export default function CartPage() {
   const canCheckout = lines.length > 0 && unavailableLines.length === 0 && missingCount === 0 && !loading;
 
   if (!hydrated || loading) {
-    return <PageTransition key="cart" {...pageTransitionProps}><p className="section-shell py-24 text-center text-sm text-[var(--muted)]">Loading cart...</p></PageTransition>;
+    return <PageTransition key="cart" {...pageTransitionProps}><div className="section-shell py-24 text-center"><LoadingIndicator label="Loading your cart" /></div></PageTransition>;
   }
 
   if (loadError) {

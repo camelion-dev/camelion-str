@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/LoadingLink";
 import { cookies } from "next/headers";
 import { getOrderById } from "@/lib/orders";
 import { getAccountOrderById } from "@/lib/orders";

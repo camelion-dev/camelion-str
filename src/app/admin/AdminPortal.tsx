@@ -3,13 +3,14 @@
 import { startTransition, useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import Link from "next/link";
+import Link from "@/components/LoadingLink";
 import { useRouter } from "next/navigation";
 import type { CatalogProduct } from "@/lib/catalog";
 import type { AdminOrderSummary } from "@/lib/orders";
 import type { AdminCustomerSummary } from "@/lib/orders";
 import { getProductSearchRelevance } from "@/lib/product-search";
 import { ContentTransition, contentTransitionProps } from "@/components/PageTransition";
+import { startNavigationLoading, startViewLoading } from "@/lib/navigation-loading";
 
 const emptyForm = { name: "", category: "Batteries", price: "", compareAtPrice: "", stock: "0", badge: "", keywords: "", description: "", detailedDescription: "", imageUrl: "", imagePath: "" };
 
@@ -54,7 +55,11 @@ export default function AdminPortal({ initialProducts }: { initialProducts: Cata
   const isSavingProductRef = useRef(false);
   const isReorderingProductsRef = useRef(false);
   const router = useRouter();
-  const changeTab = (nextTab: Tab) => startTransition(() => setTab(nextTab));
+  const changeTab = (nextTab: Tab) => {
+    if (nextTab === tab) return;
+    startViewLoading();
+    startTransition(() => setTab(nextTab));
+  };
 
   useEffect(() => {
     fetch("/api/admin/products").then((response) => response.json()).then((data) => setProducts(data.products));
@@ -67,7 +72,10 @@ export default function AdminPortal({ initialProducts }: { initialProducts: Cata
     let timeout: ReturnType<typeof setTimeout>;
 
     const signOutAfterInactivity = () => {
-      void fetch("/api/admin/login", { method: "DELETE" }).finally(() => startTransition(() => router.replace("/admin/login")));
+      void fetch("/api/admin/login", { method: "DELETE" }).finally(() => {
+        startNavigationLoading("/admin/login");
+        startTransition(() => router.replace("/admin/login"));
+      });
     };
 
     const resetTimer = () => {
@@ -204,6 +212,7 @@ export default function AdminPortal({ initialProducts }: { initialProducts: Cata
     setEditingId(product.id);
     setForm({ name: product.name, category: product.category, price: String(product.price), compareAtPrice: product.compareAtPrice ? String(product.compareAtPrice) : "", stock: String(product.stock), badge: product.badge || "", keywords: product.keywords || "", description: product.description, detailedDescription: product.detailedDescription || "", imageUrl: product.imageUrl || "", imagePath: product.imagePath || "" });
     setImagePreview(product.imageUrl || "");
+    startViewLoading();
     setIsAddProductModalOpen(true);
   };
 
@@ -237,7 +246,7 @@ export default function AdminPortal({ initialProducts }: { initialProducts: Cata
   return (
     <main ref={portalRef} className="admin-portal admin-command-center min-h-screen bg-[#f7f8fa] text-[#111]">
       <div className="flex min-h-screen flex-col lg:flex-row">
-        <aside className="admin-sidebar w-full shrink-0 bg-[#111214] p-6 text-white lg:w-[260px] lg:p-7"><Link href="/" className="inline-flex items-center" aria-label="Camelion home"><img src="/brand-logo.avif" alt="Camelion" className="h-8 w-auto object-contain" /></Link><p className="mt-3 text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Control centre</p><nav className="mt-12 grid gap-1.5">{nav.map(([id, label]) => <button key={id} onClick={() => changeTab(id)} className={`flex items-center justify-between rounded-md px-4 py-3 text-left text-xs font-semibold tracking-wide transition-colors ${tab === id ? "border-l-2 border-[#e00000] bg-white/[0.09] text-white" : "border-l-2 border-transparent text-white/50 hover:bg-white/[0.06] hover:text-white"}`}>{label}<span className="text-white/35">→</span></button>)}</nav><div className="mt-14 border-t border-white/10 pt-6 text-xs text-white/45"><p>Signed in as</p><p className="mt-1 font-semibold text-white">LEW · Administrator</p><Link href="/" className="mt-6 inline-block font-semibold text-[#ff5757]">View live store ↗</Link><button onClick={async () => { await fetch("/api/admin/login", { method: "DELETE" }); startTransition(() => router.push("/admin/login")); }} className="mt-5 block font-semibold text-white/50 hover:text-white">Sign out</button></div></aside>
+        <aside className="admin-sidebar w-full shrink-0 bg-[#111214] p-6 text-white lg:w-[260px] lg:p-7"><Link href="/" className="inline-flex items-center" aria-label="Camelion home"><img src="/brand-logo.avif" alt="Camelion" className="h-8 w-auto object-contain" /></Link><p className="mt-3 text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Control centre</p><nav className="mt-12 grid gap-1.5">{nav.map(([id, label]) => <button key={id} onClick={() => changeTab(id)} className={`flex items-center justify-between rounded-md px-4 py-3 text-left text-xs font-semibold tracking-wide transition-colors ${tab === id ? "border-l-2 border-[#e00000] bg-white/[0.09] text-white" : "border-l-2 border-transparent text-white/50 hover:bg-white/[0.06] hover:text-white"}`}>{label}<span className="text-white/35">→</span></button>)}</nav><div className="mt-14 border-t border-white/10 pt-6 text-xs text-white/45"><p>Signed in as</p><p className="mt-1 font-semibold text-white">LEW · Administrator</p><Link href="/" className="mt-6 inline-block font-semibold text-[#ff5757]">View live store ↗</Link><button onClick={async () => { await fetch("/api/admin/login", { method: "DELETE" }); startNavigationLoading("/admin/login"); startTransition(() => router.push("/admin/login")); }} className="mt-5 block font-semibold text-white/50 hover:text-white">Sign out</button></div></aside>
         <section className="admin-workspace min-w-0 flex-1 p-5 md:p-8 lg:p-10 xl:p-12">
           <header className="admin-workspace-header flex flex-col justify-between gap-5 border-b border-[#e1e5ea] pb-7 sm:flex-row sm:items-start">
             <div>
@@ -456,7 +465,7 @@ function Catalogue({ products, form, editingId, imagePreview, updateForm, submit
               </div>
               <p className="mt-2 text-xs text-[#888]">Drag the grip to reorder products. The order is shared with the main store.</p>
             </div>
-            <button type="button" onClick={() => { if (editingId) cancelEdit(); setIsAddProductModalOpen(true); }} className="rounded-none border-2 border-[#111] bg-[#e00000] px-5 py-2.5 text-[10px] font-black uppercase tracking-[0.14em] text-white shadow-[3px_3px_0_#111] transition-[background-color,transform,box-shadow] hover:bg-[#b80000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e00000]/30 focus-visible:ring-offset-2">Add Product</button>
+            <button type="button" onClick={() => { if (editingId) cancelEdit(); startViewLoading(); setIsAddProductModalOpen(true); }} className="rounded-none border-2 border-[#111] bg-[#e00000] px-5 py-2.5 text-[10px] font-black uppercase tracking-[0.14em] text-white shadow-[3px_3px_0_#111] transition-[background-color,transform,box-shadow] hover:bg-[#b80000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e00000]/30 focus-visible:ring-offset-2">Add Product</button>
           </div>
           <div>
             {visibleProducts.length === 0 ? <p className="p-5 text-sm text-[#666]">{productSearchTerm.trim() ? "No products match your search." : "No products in this category."}</p> : visibleProducts.map((product) => (
