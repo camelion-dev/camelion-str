@@ -14,8 +14,4 @@ export function startNavigationLoading(href: string) {
   dispatchNavigationLoading({ href, minimumVisibleMs: 650 });
 }
 
-export function startViewLoading(minimumVisibleMs = 650) {
-  dispatchNavigationLoading({ minimumVisibleMs });
-}
-
 export { NAVIGATION_LOADING_EVENT };

@@ -93,6 +93,24 @@ body {
   text-transform: uppercase;
 }
 
+.admin-modal-backdrop {
+  animation: admin-modal-backdrop-in 520ms ease both;
+}
+
+.admin-modal-card {
+  animation: admin-modal-card-in 720ms cubic-bezier(0.2, 0.75, 0.25, 1) both;
+}
+
+@keyframes admin-modal-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes admin-modal-card-in {
+  from { opacity: 0; transform: translateY(18px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 .camelion-inline-loader {
   display: inline-flex;
   align-items: center;
@@ -219,8 +237,13 @@ body {
 
   .site-navigation-loader,
   .site-navigation-loader.is-leaving,
-  .site-navigation-loader-spinner {
+  .site-navigation-loader-spinner,
+  .admin-modal-backdrop,
+  .admin-modal-card,
+  .mobile-filter-backdrop,
+  .mobile-filter-panel {
     animation: none !important;
+    transition: none !important;
   }
 }
 
@@ -1845,13 +1868,13 @@ footer a {
     backdrop-filter: blur(2px);
     opacity: 0;
     visibility: hidden;
-    transition: opacity 180ms ease, visibility 0s linear 280ms;
+    transition: opacity 480ms ease, visibility 0s linear 720ms;
   }
 
   .mobile-filter-backdrop[data-open="true"] {
     opacity: 1;
     visibility: visible;
-    transition: opacity 180ms ease, visibility 0s;
+    transition: opacity 480ms ease, visibility 0s;
   }
 
   .mobile-filter-panel {
@@ -1869,7 +1892,7 @@ footer a {
     transform: translateY(100%);
     opacity: 0;
     visibility: hidden;
-    transition: transform 280ms cubic-bezier(0.2, 0.75, 0.25, 1), opacity 180ms ease, visibility 0s linear 280ms;
+    transition: transform 720ms cubic-bezier(0.2, 0.75, 0.25, 1), opacity 520ms ease, visibility 0s linear 720ms;
     pointer-events: auto;
     will-change: transform;
   }
@@ -1878,7 +1901,7 @@ footer a {
     transform: translateY(0);
     opacity: 1;
     visibility: visible;
-    transition: transform 280ms cubic-bezier(0.2, 0.75, 0.25, 1), opacity 180ms ease, visibility 0s;
+    transition: transform 720ms cubic-bezier(0.2, 0.75, 0.25, 1), opacity 520ms ease, visibility 0s;
   }
 
   .mobile-filter-header {

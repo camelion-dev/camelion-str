@@ -6,7 +6,7 @@ import { startTransition, type FormEvent, useEffect, useRef, useState } from "re
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { useFavorites } from "@/context/FavoritesContext";
-import { startNavigationLoading, startViewLoading } from "@/lib/navigation-loading";
+import { startNavigationLoading } from "@/lib/navigation-loading";
 import { compareProductSearchRelevance, getProductSearchRelevance } from "@/lib/product-search";
 
 type SearchProduct = {
@@ -121,7 +121,6 @@ export function Header({ categories, searchProducts = [] }: { categories?: strin
   }, [desktopSearchOpen, mobileSearchOpen, searchProductsLoaded]);
 
   const toggleMenu = () => {
-    if (!mobileMenuOpen) startViewLoading();
     setMobileSearchOpen(false);
     setMobileMenuOpen((open) => !open);
   };
@@ -210,7 +209,6 @@ export function Header({ categories, searchProducts = [] }: { categories?: strin
             aria-expanded={mobileSearchOpen}
             aria-controls="mobile-search-layer"
             onClick={() => {
-              if (!mobileSearchOpen) startViewLoading();
               setMobileMenuOpen(false);
               setMobileSearchOpen((open) => !open);
             }}

@@ -7,12 +7,11 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import type { CatalogProduct } from "@/lib/catalog";
 import { getProductSearchRelevance } from "@/lib/product-search";
-import { startNavigationLoading, startViewLoading } from "@/lib/navigation-loading";
 import { ProductCard } from "@/components/ProductCard";
 import { ContentTransition, contentTransitionProps } from "@/components/PageTransition";
 
 const PAGE_SIZE = 12;
-const MOBILE_FILTER_TRANSITION_MS = 280;
+const MOBILE_FILTER_TRANSITION_MS = 720;
 
 type SortOption = "featured" | "newest" | "price-low" | "price-high" | "name-az" | "name-za";
 type AvailabilityOption = "all" | "in-stock" | "out-of-stock";
@@ -137,7 +136,6 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
     if (value === "all" || value === "featured") params.delete(key);
     else params.set(key, value);
     const href = `/?${params.toString()}#all-products`;
-    startNavigationLoading(href);
     startTransition(() => {
       router.replace(href, { scroll: false });
       setCurrentPage(1);
@@ -216,7 +214,6 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
   }, []);
 
   const openMobileFilters = useCallback(() => {
-    startViewLoading();
     if (mobileFilterCloseTimerRef.current !== null) {
       window.clearTimeout(mobileFilterCloseTimerRef.current);
       mobileFilterCloseTimerRef.current = null;
@@ -226,7 +223,6 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
   }, []);
 
   const resetFilters = () => {
-    startNavigationLoading("/#all-products");
     startTransition(() => {
       router.replace("/#all-products", { scroll: false });
       setMinPrice(0);
@@ -360,7 +356,6 @@ export function ProductCatalogue({ products }: { products: CatalogProduct[] }) {
 
   const goToPage = (page: number) => {
     if (page === currentPage) return;
-    startViewLoading();
     startTransition(() => setCurrentPage(page));
   };
   const renderPageButton = (page: number) => (

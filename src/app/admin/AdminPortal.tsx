@@ -10,7 +10,7 @@ import type { AdminOrderSummary } from "@/lib/orders";
 import type { AdminCustomerSummary } from "@/lib/orders";
 import { getProductSearchRelevance } from "@/lib/product-search";
 import { ContentTransition, contentTransitionProps } from "@/components/PageTransition";
-import { startNavigationLoading, startViewLoading } from "@/lib/navigation-loading";
+import { startNavigationLoading } from "@/lib/navigation-loading";
 
 const emptyForm = { name: "", category: "Batteries", price: "", compareAtPrice: "", stock: "0", badge: "", keywords: "", description: "", detailedDescription: "", imageUrl: "", imagePath: "" };
 
@@ -57,7 +57,6 @@ export default function AdminPortal({ initialProducts }: { initialProducts: Cata
   const router = useRouter();
   const changeTab = (nextTab: Tab) => {
     if (nextTab === tab) return;
-    startViewLoading();
     startTransition(() => setTab(nextTab));
   };
 
@@ -212,7 +211,6 @@ export default function AdminPortal({ initialProducts }: { initialProducts: Cata
     setEditingId(product.id);
     setForm({ name: product.name, category: product.category, price: String(product.price), compareAtPrice: product.compareAtPrice ? String(product.compareAtPrice) : "", stock: String(product.stock), badge: product.badge || "", keywords: product.keywords || "", description: product.description, detailedDescription: product.detailedDescription || "", imageUrl: product.imageUrl || "", imagePath: product.imagePath || "" });
     setImagePreview(product.imageUrl || "");
-    startViewLoading();
     setIsAddProductModalOpen(true);
   };
 
@@ -465,7 +463,7 @@ function Catalogue({ products, form, editingId, imagePreview, updateForm, submit
               </div>
               <p className="mt-2 text-xs text-[#888]">Drag the grip to reorder products. The order is shared with the main store.</p>
             </div>
-            <button type="button" onClick={() => { if (editingId) cancelEdit(); startViewLoading(); setIsAddProductModalOpen(true); }} className="rounded-none border-2 border-[#111] bg-[#e00000] px-5 py-2.5 text-[10px] font-black uppercase tracking-[0.14em] text-white shadow-[3px_3px_0_#111] transition-[background-color,transform,box-shadow] hover:bg-[#b80000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e00000]/30 focus-visible:ring-offset-2">Add Product</button>
+            <button type="button" onClick={() => { if (editingId) cancelEdit(); setIsAddProductModalOpen(true); }} className="rounded-none border-2 border-[#111] bg-[#e00000] px-5 py-2.5 text-[10px] font-black uppercase tracking-[0.14em] text-white shadow-[3px_3px_0_#111] transition-[background-color,transform,box-shadow] hover:bg-[#b80000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e00000]/30 focus-visible:ring-offset-2">Add Product</button>
           </div>
           <div>
             {visibleProducts.length === 0 ? <p className="p-5 text-sm text-[#666]">{productSearchTerm.trim() ? "No products match your search." : "No products in this category."}</p> : visibleProducts.map((product) => (
@@ -527,13 +525,13 @@ function Catalogue({ products, form, editingId, imagePreview, updateForm, submit
       </div>
 
       {productPendingDelete && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4 backdrop-blur-[2px]" onClick={() => { if (!isDeletingProduct) setProductPendingDelete(null); }}>
+        <div className="admin-modal-backdrop fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4 backdrop-blur-[2px]" onClick={() => { if (!isDeletingProduct) setProductPendingDelete(null); }}>
           <div
             role="alertdialog"
             aria-modal="true"
             aria-labelledby="delete-product-title"
             aria-describedby="delete-product-description"
-            className="w-full max-w-[440px] overflow-hidden border-2 border-[#111] bg-white shadow-[6px_6px_0_#111]"
+            className="admin-modal-card w-full max-w-[440px] overflow-hidden border-2 border-[#111] bg-white shadow-[6px_6px_0_#111]"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="h-1.5 bg-[#e00000]" />
@@ -562,14 +560,14 @@ function Catalogue({ products, form, editingId, imagePreview, updateForm, submit
       )}
 
       {isAddProductModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-[2px]" onClick={(event) => {
+        <div className="admin-modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-[2px]" onClick={(event) => {
           if (event.target === event.currentTarget) closeProductModal();
         }}>
           <div
             role="dialog"
             aria-modal="true"
             aria-label={editingId ? "Edit product" : "Add product"}
-            className="relative w-full max-w-[680px] overflow-hidden rounded-2xl border border-[#111]/10 bg-white shadow-[0_30px_90px_rgba(17,17,17,0.18)]"
+            className="admin-modal-card relative w-full max-w-[680px] overflow-hidden rounded-2xl border border-[#111]/10 bg-white shadow-[0_30px_90px_rgba(17,17,17,0.18)]"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-start justify-between border-b border-[#111]/10 px-5 py-4">
