@@ -4,7 +4,7 @@ import Link from "next/link";
 import type { ComponentProps } from "react";
 import { startNavigationLoading } from "@/lib/navigation-loading";
 
-type LoadingLinkProps = ComponentProps<typeof Link>;
+type LoadingLinkProps = ComponentProps<typeof Link> & { showLoader?: boolean };
 type NavigateHandler = NonNullable<LoadingLinkProps["onNavigate"]>;
 
 function getHrefString(href: LoadingLinkProps["href"]) {
@@ -21,7 +21,7 @@ function getHrefString(href: LoadingLinkProps["href"]) {
   return `${href.pathname ?? ""}${query ? `?${query}` : ""}${href.hash ?? ""}`;
 }
 
-export default function LoadingLink({ onNavigate, href, ...props }: LoadingLinkProps) {
+export default function LoadingLink({ onNavigate, href, showLoader = true, ...props }: LoadingLinkProps) {
   const handleNavigate: NavigateHandler = (event) => {
     let shouldNavigate = true;
     onNavigate?.({
@@ -30,7 +30,7 @@ export default function LoadingLink({ onNavigate, href, ...props }: LoadingLinkP
         event.preventDefault();
       },
     });
-    if (shouldNavigate) startNavigationLoading(getHrefString(href));
+    if (shouldNavigate && showLoader) startNavigationLoading(getHrefString(href));
   };
 
   return <Link {...props} href={href} onNavigate={handleNavigate} />;

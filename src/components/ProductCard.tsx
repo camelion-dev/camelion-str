@@ -49,6 +49,7 @@ export function ProductCard({ product, compact = false, plain = false, marquee =
             (it sits at a higher z-index, so pointer hit-testing reaches it first). */}
         <Link 
           href={`/products/${product.slug}`} 
+          showLoader={false}
           aria-label={`View ${name}`} 
           className="absolute inset-0 z-[5] focus:outline-none"
         >
@@ -67,7 +68,7 @@ export function ProductCard({ product, compact = false, plain = false, marquee =
         </div>
         <div className={`product-card-details z-10 px-4 py-3 ${plain ? "plain-card-details bg-white text-[var(--foreground)]" : "bg-[var(--red)] text-white"} ${marquee ? "marquee-card-details" : ""}`}>
           <div className="product-card-content">
-            <h3 className="product-card-title line-clamp-2"><Link href={`/products/${product.slug}`} className="transition-colors hover:text-[var(--red)]">{name}</Link></h3>
+            <h3 className="product-card-title line-clamp-2"><Link href={`/products/${product.slug}`} showLoader={false} className="transition-colors hover:text-[var(--red)]">{name}</Link></h3>
             <div className={`product-card-price-row ${marquee ? "marquee-card-price" : ""}`}>
               <p className="product-card-price whitespace-nowrap">Rs. {price.toLocaleString()}</p>
               {compareAtPrice && <p className={`product-card-compare whitespace-nowrap line-through ${plain ? "text-[var(--muted)]" : "text-white/65"}`}>Rs. {compareAtPrice.toLocaleString()}</p>}
