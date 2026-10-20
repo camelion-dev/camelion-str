@@ -93,7 +93,7 @@ export default function CartPage() {
   return (
     <PageTransition key="cart" {...pageTransitionProps}>
     <div className="section-shell py-10 md:py-16">
-      <div className="mb-8 flex items-end justify-between border-b border-[var(--border)] pb-5">
+      <div className="cart-heading-enter mb-8 flex items-end justify-between border-b border-[var(--border)] pb-5">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--red)]">Your cart</p>
           <h1 className="mt-2 text-3xl font-black uppercase tracking-[-0.03em]">{items.reduce((total, item) => total + item.quantity, 0)} item{items.reduce((total, item) => total + item.quantity, 0) === 1 ? "" : "s"}</h1>
@@ -109,11 +109,11 @@ export default function CartPage() {
 
       <div className="grid gap-10 lg:grid-cols-[1fr_360px]">
         <div className="divide-y divide-[var(--border)]">
-          {lines.map(({ item, product }) => {
+          {lines.map(({ item, product }, index) => {
             const unavailable = !product.active || product.stock <= 0;
             const exceedsStock = !unavailable && item.quantity > product.stock;
             return (
-              <div key={item.productId} className="flex gap-4 py-6">
+              <div key={item.productId} className="cart-line-enter flex gap-4 py-6" style={{ animationDelay: `${Math.min(index * 130, 780)}ms` }}>
                 <Link href={`/products/${product.slug}`} className="product-visual h-24 w-24 shrink-0 overflow-hidden rounded-xl border border-[var(--border)]">
                   {product.imageUrl ? <div role="img" aria-label={product.name} className="absolute inset-0 bg-contain bg-center bg-no-repeat" style={{ backgroundImage: `url(${product.imageUrl})` }} /> : <div className={`${product.visual} product-fallback-visual`} />}
                 </Link>
@@ -141,7 +141,7 @@ export default function CartPage() {
           })}
         </div>
 
-        <div className="h-fit rounded-2xl border border-[var(--border)] p-6">
+        <div className="cart-summary-enter h-fit rounded-2xl border border-[var(--border)] p-6" style={{ animationDelay: "380ms" }}>
           <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">Order summary</h2>
           <div className="mt-4 space-y-2 text-sm">
             <div className="flex justify-between"><span className="text-[var(--body-gray)]">Subtotal</span><span className="font-semibold">Rs. {subtotal.toLocaleString()}</span></div>

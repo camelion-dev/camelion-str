@@ -184,7 +184,7 @@ export function Header({ categories, searchProducts = [] }: { categories?: strin
                 <p className="desktop-search-overline">Products <span>({mobileSearchMatches.length})</span></p>
                 {searchProductsLoading && <p className="desktop-search-status">Loading products…</p>}
                 {searchProductsError && <div className="desktop-search-status"><p>Products couldn’t be loaded.</p><button type="button" onClick={() => { setSearchProductsLoaded(false); setSearchProductsError(false); }}>Try again</button></div>}
-                {!searchProductsLoading && !searchProductsError && mobileSearchMatches.length > 0 && mobileSearchMatches.map((product) => <Link key={product.slug} href={`/products/${product.slug}`} className="desktop-search-product" onClick={() => { setSearchTerm(""); setDesktopSearchHovered(false); setDesktopSearchFocused(false); }}>
+                {!searchProductsLoading && !searchProductsError && mobileSearchMatches.length > 0 && mobileSearchMatches.map((product, index) => <Link key={product.slug} href={`/products/${product.slug}`} className="desktop-search-product" style={{ animationDelay: `${Math.min(index * 85, 680)}ms` }} onClick={() => { setSearchTerm(""); setDesktopSearchHovered(false); setDesktopSearchFocused(false); }}>
                   <span className="desktop-search-product-image">{product.imageUrl ? <img src={product.imageUrl} alt="" /> : <span>{product.name.slice(0, 1)}</span>}</span>
                   <span className="desktop-search-product-info"><span className="desktop-search-product-name">{product.name}</span><span className="desktop-search-product-category">{product.category}</span></span>
                   <span className="desktop-search-product-price">Rs. {product.price.toLocaleString()}</span>
@@ -261,7 +261,7 @@ export function Header({ categories, searchProducts = [] }: { categories?: strin
               <p className="mobile-search-overline">Products <span>({mobileSearchMatches.length})</span></p>
               {searchProductsLoading && <p className="mobile-search-status">Loading products…</p>}
               {searchProductsError && <div className="mobile-search-status"><p>Products couldn’t be loaded.</p><button type="button" onClick={() => { setSearchProductsLoaded(false); setSearchProductsError(false); }}>Try again</button></div>}
-              {!searchProductsLoading && !searchProductsError && mobileSearchMatches.length > 0 && mobileSearchMatches.map((product) => <Link key={product.slug} href={`/products/${product.slug}`} className="mobile-search-product" onClick={closeSearch}>
+              {!searchProductsLoading && !searchProductsError && mobileSearchMatches.length > 0 && mobileSearchMatches.map((product, index) => <Link key={product.slug} href={`/products/${product.slug}`} className="mobile-search-product" style={{ animationDelay: `${Math.min(index * 85, 680)}ms` }} onClick={closeSearch}>
                 <span className="mobile-search-product-image">{product.imageUrl ? <img src={product.imageUrl} alt="" /> : <span>{product.name.slice(0, 1)}</span>}</span>
                 <span className="mobile-search-product-info"><span className="mobile-search-product-name">{product.name}</span><span className="mobile-search-product-price">Rs. {product.price.toLocaleString()}</span></span>
               </Link>)}
