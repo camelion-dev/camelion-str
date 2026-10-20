@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { getAccountOrderById } from "@/lib/orders";
 import { getCurrentAccount } from "@/lib/account-auth";
 import { InvoicePrintButton } from "@/components/InvoicePrintButton";
+import { PageTransition, pageTransitionProps } from "@/components/PageTransition";
 
 export const dynamic = "force-dynamic";
 type PageProps = { params: Promise<{ orderId: string }> };
@@ -18,6 +19,7 @@ export default async function AccountInvoicePage({ params }: PageProps) {
   if (!order) notFound();
 
   return (
+    <PageTransition key={`account-invoice-${orderId}`} {...pageTransitionProps}>
     <main className="min-h-screen bg-[#f5f5f5] px-4 py-8 text-[#111] print:bg-white print:px-0 print:py-0">
       <article className="mx-auto max-w-3xl bg-white p-6 shadow-sm sm:p-10 print:max-w-none print:shadow-none">
         <header className="flex flex-col justify-between gap-6 border-b-2 border-[#111] pb-6 sm:flex-row sm:items-start"><div><img src="/brand-logo.avif" alt="Camelion" className="h-9 w-auto object-contain" /><p className="mt-4 text-xs font-bold uppercase tracking-[0.2em] text-[#777]">Order invoice</p></div><div className="text-left text-sm sm:text-right"><p className="font-bold">#{order.orderNumber}</p><p className="mt-1 text-[#555]">{new Date(order.createdAt).toLocaleString("en-PK", { dateStyle: "medium", timeStyle: "short" })}</p><p className="mt-2 font-bold uppercase tracking-wider text-[#e00000]">{order.status}</p></div></header>
@@ -26,5 +28,6 @@ export default async function AccountInvoicePage({ params }: PageProps) {
   <footer className="flex flex-col justify-between gap-4 border-t border-[#ddd] pt-5 text-xs text-[#777] sm:flex-row"><span>Payment method: Cash on Delivery</span><InvoicePrintButton /></footer>
       </article>
     </main>
+    </PageTransition>
   );
 }

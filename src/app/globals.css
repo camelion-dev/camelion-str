@@ -45,24 +45,59 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-@media (max-width: 767px) {
-  .site-page-transition {
-    animation: site-page-enter 700ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+::view-transition {
+  pointer-events: none;
+}
+
+::view-transition-group(root),
+::view-transition-group(.site-page-enter),
+::view-transition-group(.site-page-exit) {
+  animation: none;
+}
+
+::view-transition-old(root) {
+  animation: site-page-exit 260ms cubic-bezier(0.55, 0.06, 0.68, 0.19) both;
+}
+
+::view-transition-old(.site-page-exit) {
+  animation: site-page-exit 260ms cubic-bezier(0.55, 0.06, 0.68, 0.19) both;
+}
+
+::view-transition-new(.site-page-enter) {
+  animation: site-page-enter 620ms cubic-bezier(0.22, 0.61, 0.36, 1) 50ms both;
+}
+
+@keyframes site-page-exit {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-12px);
   }
 }
 
 @keyframes site-page-enter {
   from {
     opacity: 0;
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
+    transform: translateY(0);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .site-page-transition {
-    animation: none;
+  ::view-transition-group(.site-page-enter),
+  ::view-transition-group(.site-page-exit),
+  ::view-transition-group(root),
+  ::view-transition-old(root),
+  ::view-transition-old(.site-page-exit),
+  ::view-transition-new(.site-page-enter) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
   }
 
   .mobile-search-panel,

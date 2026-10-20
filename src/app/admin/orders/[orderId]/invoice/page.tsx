@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { getOrderById } from "@/lib/orders";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { InvoicePrintButton } from "@/components/InvoicePrintButton";
+import { PageTransition, pageTransitionProps } from "@/components/PageTransition";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +24,7 @@ export default async function AdminInvoicePage({ params }: PageProps) {
   if (!order) notFound();
 
   return (
+    <PageTransition key={`admin-invoice-${orderId}`} {...pageTransitionProps}>
     <main className="min-h-screen bg-[#f5f5f5] px-4 py-8 text-[#111] print:bg-white print:px-0 print:py-0">
       <article className="mx-auto max-w-3xl bg-white p-6 shadow-sm sm:p-10 print:max-w-none print:shadow-none">
         <header className="flex flex-col justify-between gap-6 border-b-2 border-[#111] pb-6 sm:flex-row sm:items-start">
@@ -66,5 +68,6 @@ export default async function AdminInvoicePage({ params }: PageProps) {
         <footer className="flex flex-col justify-between gap-4 border-t border-[#ddd] pt-5 text-xs text-[#777] sm:flex-row"><span>Payment method: Cash on Delivery</span><InvoicePrintButton /></footer>
       </article>
     </main>
+    </PageTransition>
   );
 }

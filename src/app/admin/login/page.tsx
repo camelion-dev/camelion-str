@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { PageTransition, pageTransitionProps } from "@/components/PageTransition";
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState("");
@@ -31,7 +32,8 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#080808] text-white lg:h-screen lg:overflow-hidden">
+    <PageTransition key="admin-login" {...pageTransitionProps}>
+      <main className="relative min-h-screen overflow-hidden bg-[#080808] text-white lg:h-screen lg:overflow-hidden">
       <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url('/foradminbg.png')" }} />
       <div className="absolute inset-0 bg-black/20" />
       <div className="relative z-10 flex min-h-screen flex-col px-6 py-4 md:px-10 md:py-5 lg:h-full lg:min-h-0">
@@ -60,6 +62,7 @@ export default function AdminLoginPage() {
         </div>
         <footer className="flex items-center text-xs text-white/45"><span>Camelion Store · Admin access</span></footer>
       </div>
-    </main>
+      </main>
+    </PageTransition>
   );
 }

@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useCart } from "@/context/CartContext";
 import type { CatalogProduct } from "@/lib/catalog";
 import { calculateDeliveryFee, calculateSubtotal, calculateTotal } from "@/lib/pricing";
+import { PageTransition, pageTransitionProps } from "@/components/PageTransition";
 
 export default function CartPage() {
   const { items, hydrated, setQuantity, removeItem } = useCart();
@@ -62,30 +63,35 @@ export default function CartPage() {
   const canCheckout = lines.length > 0 && unavailableLines.length === 0 && missingCount === 0 && !loading;
 
   if (!hydrated || loading) {
-    return <p className="section-shell py-24 text-center text-sm text-[var(--muted)]">Loading cart...</p>;
+    return <PageTransition key="cart" {...pageTransitionProps}><p className="section-shell py-24 text-center text-sm text-[var(--muted)]">Loading cart...</p></PageTransition>;
   }
 
   if (loadError) {
     return (
+      <PageTransition key="cart" {...pageTransitionProps}>
       <div className="section-shell flex flex-col items-center gap-3 py-24 text-center">
         <p className="text-sm font-bold text-[var(--red)]">We couldn&apos;t load your cart right now.</p>
         <p className="text-sm text-[var(--body-gray)]">Please check your connection and try again.</p>
       </div>
+      </PageTransition>
     );
   }
 
   if (items.length === 0) {
     return (
+      <PageTransition key="cart" {...pageTransitionProps}>
       <div className="section-shell flex flex-col items-center gap-4 py-24 text-center">
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--red)]">Your cart</p>
         <h1 className="text-3xl font-black uppercase tracking-[-0.03em]">Your cart is empty</h1>
         <p className="max-w-md text-sm text-[var(--body-gray)]">Looks like you haven&apos;t added anything yet.</p>
         <Link href="/" className="mt-2 bg-[var(--red)] px-6 py-4 text-xs font-bold uppercase tracking-wider text-white transition-colors hover:bg-[var(--red-dark)]">Continue shopping</Link>
       </div>
+      </PageTransition>
     );
   }
 
   return (
+    <PageTransition key="cart" {...pageTransitionProps}>
     <div className="section-shell py-10 md:py-16">
       <div className="mb-8 flex items-end justify-between border-b border-[var(--border)] pb-5">
         <div>
@@ -155,5 +161,6 @@ export default function CartPage() {
         </div>
       </div>
     </div>
+    </PageTransition>
   );
 }

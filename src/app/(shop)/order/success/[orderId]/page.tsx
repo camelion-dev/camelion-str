@@ -5,6 +5,7 @@ import { getAccountOrderById } from "@/lib/orders";
 import { getCurrentAccount } from "@/lib/account-auth";
 import { ORDER_RECEIPT_COOKIE, verifyOrderReceiptToken } from "@/lib/order-receipt";
 import { ReceiptDownloadButton } from "@/components/ReceiptDownloadButton";
+import { PageTransition, pageTransitionProps } from "@/components/PageTransition";
 
 export const dynamic = "force-dynamic";
 
@@ -19,15 +20,18 @@ export default async function OrderSuccessPage({ params }: PageProps) {
 
   if (!order) {
     return (
+      <PageTransition key={`order-success-${orderId}`} {...pageTransitionProps}>
       <div className="section-shell flex flex-col items-center gap-4 py-24 text-center">
         <h1 className="text-3xl font-black uppercase tracking-[-0.03em]">Order not found</h1>
         <p className="max-w-md text-sm text-[var(--body-gray)]">We couldn&apos;t find an order at this link.</p>
         <Link href="/" className="mt-2 bg-[var(--red)] px-6 py-4 text-xs font-bold uppercase tracking-wider text-white transition-colors hover:bg-[var(--red-dark)]">Back to shop</Link>
       </div>
+      </PageTransition>
     );
   }
 
   return (
+    <PageTransition key={`order-success-${orderId}`} {...pageTransitionProps}>
     <div className="section-shell py-10 md:py-16">
       <div className="mx-auto max-w-2xl text-center">
         <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[var(--red)] text-2xl text-white">✓</span>
@@ -72,5 +76,6 @@ export default async function OrderSuccessPage({ params }: PageProps) {
         </div>
       </div>
     </div>
+    </PageTransition>
   );
 }

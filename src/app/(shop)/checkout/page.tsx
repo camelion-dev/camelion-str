@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useCart } from "@/context/CartContext";
 import type { CatalogProduct } from "@/lib/catalog";
 import { calculateDeliveryFee, calculateSubtotal, calculateTotal } from "@/lib/pricing";
+import { PageTransition, pageTransitionProps } from "@/components/PageTransition";
 
 type FormState = {
   name: string;
@@ -137,20 +138,23 @@ export default function CheckoutPage() {
   }
 
   if (!hydrated || loading) {
-    return <p className="section-shell py-24 text-center text-sm text-[var(--muted)]">Loading checkout...</p>;
+    return <PageTransition key="checkout" {...pageTransitionProps}><p className="section-shell py-24 text-center text-sm text-[var(--muted)]">Loading checkout...</p></PageTransition>;
   }
 
   if (items.length === 0) {
     return (
+      <PageTransition key="checkout" {...pageTransitionProps}>
       <div className="section-shell flex flex-col items-center gap-4 py-24 text-center">
         <h1 className="text-3xl font-black uppercase tracking-[-0.03em]">Your cart is empty</h1>
         <p className="max-w-md text-sm text-[var(--body-gray)]">Add some products before checking out.</p>
         <Link href="/" className="mt-2 bg-[var(--red)] px-6 py-4 text-xs font-bold uppercase tracking-wider text-white transition-colors hover:bg-[var(--red-dark)]">Continue shopping</Link>
       </div>
+      </PageTransition>
     );
   }
 
   return (
+    <PageTransition key="checkout" {...pageTransitionProps}>
     <div className="section-shell py-10 md:py-16">
       <div className="mb-8 border-b border-[var(--border)] pb-5">
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--red)]">Checkout</p>
@@ -246,5 +250,6 @@ export default function CheckoutPage() {
         </div>
       </form>
     </div>
+    </PageTransition>
   );
 }
