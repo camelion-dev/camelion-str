@@ -201,6 +201,7 @@ model Order {
   user           User           @relation(fields: [userId], references: [id])
   items          OrderItem[]
   statusHistory  OrderStatusHistory[]
+  whatsappReplyEvents WhatsAppOrderReplyEvent[]
   stockRestored  Boolean        @default(false)
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
@@ -227,6 +228,16 @@ model OrderStatusHistory {
   orderId   String
   order     Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
   createdAt DateTime    @default(now())
+  @@index([orderId, createdAt])
+}
+
+model WhatsAppOrderReplyEvent {
+  id        String   @id
+  orderId   String?
+  order     Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  action    String
+  outcome   String
+  createdAt DateTime @default(now())
   @@index([orderId, createdAt])
 }
 

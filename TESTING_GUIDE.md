@@ -225,6 +225,15 @@ npm run lint       # Should: ✅ No errors
 npm run build      # Should: ✅ Success
 ```
 
+### WhatsApp Order Replies
+
+1. Configure `WHATSAPP_WEBHOOK_SECRET` with the signing secret from the provider, then deploy the app to a public HTTPS URL and register `/api/whatsapp/webhook` with the provider.
+2. Confirm the provider's one-time `event: "test"` callback receives a 2xx response.
+3. Place a test order and reply from the same WhatsApp number with `CONFIRMED <order number>`. Verify the order becomes `CONFIRMED` and one status-history row is added.
+4. Place another test order and reply with `CANCELLED <order number>`. Verify the order becomes `CANCELLED` and reserved stock is restored once.
+5. Replay the same signed webhook event. Verify it returns 2xx without adding history or restoring stock again.
+6. Try an order number from a different sender. Verify the order status and stock do not change.
+
 ---
 
 ## Questions or Issues?

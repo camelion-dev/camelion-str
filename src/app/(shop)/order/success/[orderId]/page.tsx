@@ -9,10 +9,15 @@ import { PageTransition, pageTransitionProps } from "@/components/PageTransition
 
 export const dynamic = "force-dynamic";
 
-type PageProps = { params: Promise<{ orderId: string }> };
+type PageProps = {
+  params: Promise<{ orderId: string }>;
+  searchParams: Promise<{ whatsapp?: string | string[] }>;
+};
 
-export default async function OrderSuccessPage({ params }: PageProps) {
+export default async function OrderSuccessPage({ params, searchParams }: PageProps) {
   const { orderId } = await params;
+  const whatsappParam = (await searchParams).whatsapp;
+  const whatsappStatus = whatsappParam === "sent" || whatsappParam === "not_sent" ? whatsappParam : "unknown";
   const account = await getCurrentAccount();
   const accountOrder = account ? await getAccountOrderById(orderId, account.id) : null;
   const receiptToken = (await cookies()).get(ORDER_RECEIPT_COOKIE)?.value;
@@ -35,9 +40,40 @@ export default async function OrderSuccessPage({ params }: PageProps) {
     <div className="section-shell py-10 md:py-16">
       <div className="mx-auto max-w-2xl text-center">
         <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[var(--red)] text-2xl text-white">✓</span>
-        <h1 className="mt-5 text-3xl font-black uppercase tracking-[-0.03em] md:text-4xl">Order confirmed!</h1>
+        <h1 className="mt-5 text-3xl font-black uppercase tracking-[-0.03em] md:text-4xl">
+          {order.status === "CONFIRMED" ? "Order confirmed!" : order.status === "CANCELLED" ? "Order cancelled" : "Order placed!"}
+        </h1>
         <p className="mt-2 text-sm text-[var(--body-gray)]">Thank you for your order.</p>
         <p className="mt-4 text-xs font-bold uppercase tracking-wider text-[var(--muted)]">Order # {order.orderNumber}</p>
+      </div>
+
+      <div className="mx-auto mt-8 max-w-2xl border border-[var(--border)] bg-[var(--soft-gray)] p-5 text-center" aria-live="polite">
+        {order.status === "CONFIRMED" ? (
+          <>
+            <h2 className="text-sm font-bold uppercase tracking-wide">Confirmation received</h2>
+            <p className="mt-2 text-sm leading-6 text-[var(--body-gray)]">Your order is confirmed. Thank you.</p>
+          </>
+        ) : order.status === "CANCELLED" ? (
+          <>
+            <h2 className="text-sm font-bold uppercase tracking-wide">Cancellation received</h2>
+            <p className="mt-2 text-sm leading-6 text-[var(--body-gray)]">Your order has been cancelled.</p>
+          </>
+        ) : whatsappStatus === "sent" ? (
+          <>
+            <h2 className="text-sm font-bold uppercase tracking-wide">WhatsApp confirmation request sent</h2>
+            <p className="mt-2 text-sm leading-6 text-[var(--body-gray)]">We sent a message to {order.customerPhone}. Reply with <strong>CONFIRMED {order.orderNumber}</strong> or <strong>CANCELLED {order.orderNumber}</strong>. Your order remains pending until you reply.</p>
+          </>
+        ) : whatsappStatus === "not_sent" ? (
+          <>
+            <h2 className="text-sm font-bold uppercase tracking-wide">Order awaiting confirmation</h2>
+            <p className="mt-2 text-sm leading-6 text-[var(--body-gray)]">We couldn&apos;t send the WhatsApp request right now. Your order remains pending; please contact us and quote your order number if you need help.</p>
+          </>
+        ) : (
+          <>
+            <h2 className="text-sm font-bold uppercase tracking-wide">WhatsApp delivery status unconfirmed</h2>
+            <p className="mt-2 text-sm leading-6 text-[var(--body-gray)]">The request may still arrive. If you receive it, reply with <strong>CONFIRMED {order.orderNumber}</strong> or <strong>CANCELLED {order.orderNumber}</strong>. Your order remains pending until you reply.</p>
+          </>
+        )}
       </div>
 
       <div className="mx-auto mt-10 grid max-w-2xl gap-6 sm:grid-cols-2">

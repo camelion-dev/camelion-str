@@ -64,6 +64,10 @@ Before deploying rich product descriptions, run [`supabase/product_detailed_desc
 5. Keep `SUPABASE_SERVICE_ROLE_KEY` server-only. The protected `/api/admin/product-images` route uses it to upload files.
 6. Product uploads accept verified JPEG, PNG, and WebP files up to 4MB. The stored public URL and storage path are kept with the product record so the image can render in the storefront and be managed later.
 
+## WhatsApp order confirmation
+
+Set `WHATSAPP_PROVIDER_TOKEN` and the signing secret shown by the provider's Webhook settings as `WHATSAPP_WEBHOOK_SECRET`; both are server-only secrets in `.env.local` and deployment configuration. The checkout API sends a text confirmation request after the order has been committed; provider failures do not undo the order. The order remains `PENDING`, and the message asks the customer to reply `CONFIRMED <order number>` or `CANCELLED <order number>`. After deploying to a public HTTPS domain, register `https://<your-production-domain>/api/whatsapp/webhook` in the provider dashboard or with `POST https://whatsapp.qasimhussain.com/api/webhook` and `{ "url": "https://<your-production-domain>/api/whatsapp/webhook" }`. The signed webhook checks the sender against the order phone, deduplicates provider message IDs, and permits only pending-order confirmation/cancellation. Cancellation restores stock once. Apply [`supabase/whatsapp_order_reply.sql`](supabase/whatsapp_order_reply.sql) to other environments before deploying the webhook code. The API token previously shared in chat should be revoked and replaced before configuring these variables.
+
 The Prisma schema already includes `ProductImage` related to `Product`; the current local catalogue adapter mirrors the image URL/path fields until Prisma dependencies and a live database are configured.
 
 ## Product direction

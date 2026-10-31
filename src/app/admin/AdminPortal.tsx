@@ -62,8 +62,39 @@ export default function AdminPortal({ initialProducts }: { initialProducts: Cata
 
   useEffect(() => {
     fetch("/api/admin/products").then((response) => response.json()).then((data) => setProducts(data.products));
-    fetch("/api/admin/orders").then((response) => response.json()).then((data) => setOrders(data.orders || []));
     fetch("/api/admin/customers").then((response) => response.json()).then((data) => setCustomers(data.customers || []));
+
+    let cancelled = false;
+    let requestInFlight = false;
+    const loadOrders = async () => {
+      if (cancelled || requestInFlight || document.visibilityState === "hidden") return;
+      requestInFlight = true;
+      try {
+        const response = await fetch("/api/admin/orders", { cache: "no-store" });
+        if (!response.ok) return;
+        const data = await response.json() as { orders?: AdminOrderSummary[] };
+        if (!cancelled) setOrders(data.orders || []);
+      } catch {
+        // Keep the last known order state; the next poll can recover.
+      } finally {
+        requestInFlight = false;
+      }
+    };
+    const refreshVisibleOrders = () => {
+      if (!document.hidden) void loadOrders();
+    };
+
+    void loadOrders();
+    const timer = window.setInterval(refreshVisibleOrders, 10_000);
+    window.addEventListener("focus", refreshVisibleOrders);
+    document.addEventListener("visibilitychange", refreshVisibleOrders);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+      window.removeEventListener("focus", refreshVisibleOrders);
+      document.removeEventListener("visibilitychange", refreshVisibleOrders);
+    };
   }, []);
 
   useEffect(() => {

@@ -96,6 +96,20 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
   return { success: true, orderId: result.id, orderNumber: result.number, subtotal: result.subtotal, deliveryFee: result.deliveryFee, total: result.total };
 }
 
+export async function processWhatsAppOrderReply(input: {
+  eventId: string;
+  orderNumber: string;
+  senderPhone: string;
+  action: "CONFIRMED" | "CANCELLED";
+}) {
+  const response = await supabase("rpc/process_whatsapp_order_reply", {
+    method: "POST",
+    body: JSON.stringify({ payload: input }),
+  });
+  if (!response.ok) throw new Error("WhatsApp order reply could not be processed.");
+  return await response.json() as { outcome: string; status?: OrderStatus };
+}
+
 /** Translates the place_order() error codes (see supabase/orders.sql) into customer-friendly messages. */
 function parseOrderError(rawBody: string): string {
   let message = rawBody;

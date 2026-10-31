@@ -132,8 +132,10 @@ export default function CheckoutPage() {
         return;
       }
       clearCart();
-      startNavigationLoading(`/order/success/${data.order.id}`);
-      startTransition(() => router.push(`/order/success/${data.order.id}`));
+      const whatsappStatus = data.whatsappMessageStatus === "accepted" ? "sent" : data.whatsappMessageStatus === "not_sent" ? "not_sent" : "unknown";
+      const successUrl = `/order/success/${data.order.id}?whatsapp=${whatsappStatus}`;
+      startNavigationLoading(successUrl);
+      startTransition(() => router.push(successUrl));
     } catch {
       setSubmitError("We couldn't reach the server. Your cart has been kept intact — please try again.");
       setSubmitting(false);
