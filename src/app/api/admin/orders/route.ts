@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
-import { getAdminOrders, updateAdminOrderStatus } from "@/lib/orders";
+import { getAdminOrders, getOrderById, updateAdminOrderStatus } from "@/lib/orders";
+import { sendWhatsAppText } from "@/lib/whatsapp-provider";
 import { orderStatuses, type OrderStatus } from "@/lib/order-status";
 
 export const dynamic = "force-dynamic";
@@ -29,6 +30,25 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "A valid order id and status are required." }, { status: 400 });
     }
     const order = await updateAdminOrderStatus(body.id, body.status as OrderStatus);
+
+    if (order.status === "CANCELLED") {
+      after(async () => {
+        try {
+          const cancelledOrder = await getOrderById(order.id);
+          if (!cancelledOrder) return;
+          const messageStatus = await sendWhatsAppText(
+            cancelledOrder.customerPhone,
+            `Your order ${cancelledOrder.orderNumber} has been cancelled as requested. We hope to serve you again. Please visit our store to place a new order: https://www.camelion.store`,
+          );
+          if (messageStatus !== "accepted") {
+            console.warn("WhatsApp cancellation message was not confirmed as accepted.", { orderId: order.id, messageStatus });
+          }
+        } catch {
+          console.error("WhatsApp cancellation follow-up failed.", { orderId: order.id });
+        }
+      });
+    }
+
     return NextResponse.json({ order });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to update order." }, { status: 400 });
