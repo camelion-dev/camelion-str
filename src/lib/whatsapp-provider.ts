@@ -47,9 +47,9 @@ function createOrderMessage(order: OrderRecord) {
   ].join("\n");
 }
 
-export async function sendOrderConfirmationMessage(order: OrderRecord): Promise<WhatsAppMessageStatus> {
+export async function sendWhatsAppText(phone: string, text: string): Promise<WhatsAppMessageStatus> {
   const token = process.env.WHATSAPP_PROVIDER_TOKEN?.trim();
-  const to = normalizeWhatsAppPhone(order.customerPhone);
+  const to = normalizeWhatsAppPhone(phone);
   if (!token || !to) return "not_sent";
 
   try {
@@ -59,7 +59,7 @@ export async function sendOrderConfirmationMessage(order: OrderRecord): Promise<
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ to, text: createOrderMessage(order) }),
+      body: JSON.stringify({ to, text }),
       signal: AbortSignal.timeout(8000),
       cache: "no-store",
     });
@@ -76,4 +76,8 @@ export async function sendOrderConfirmationMessage(order: OrderRecord): Promise<
   } catch {
     return "unknown";
   }
+}
+
+export async function sendOrderConfirmationMessage(order: OrderRecord): Promise<WhatsAppMessageStatus> {
+  return sendWhatsAppText(order.customerPhone, createOrderMessage(order));
 }

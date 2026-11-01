@@ -1,7 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { processWhatsAppOrderReply } from "@/lib/orders";
-import { normalizeWhatsAppPhone } from "@/lib/whatsapp-provider";
+import { normalizeWhatsAppPhone, sendWhatsAppText } from "@/lib/whatsapp-provider";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -102,12 +102,25 @@ export async function POST(request: Request) {
   }
 
   try {
-    await processWhatsAppOrderReply({
+    const result = await processWhatsAppOrderReply({
       eventId: body.id,
       orderNumber: match[2]?.toUpperCase(),
       senderPhone,
       action: match[1].toUpperCase().startsWith("CONFIRM") ? "CONFIRMED" : "CANCELLED",
     });
+
+    if (result.outcome === "applied" && result.status === "CONFIRMED") {
+      after(async () => {
+        const status = await sendWhatsAppText(
+          senderPhone,
+          "Thank you! Your order has been confirmed. Your tracking ID will be shared with you shortly.",
+        );
+        if (status !== "accepted") {
+          console.warn("WhatsApp confirmation follow-up was not confirmed as accepted.", { eventId: body.id, status });
+        }
+      });
+    }
+
     return NextResponse.json({ ok: true });
   } catch {
     return NextResponse.json({ ok: false }, { status: 500 });
