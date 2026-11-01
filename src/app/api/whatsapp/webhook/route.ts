@@ -109,14 +109,17 @@ export async function POST(request: Request) {
       action: match[1].toUpperCase().startsWith("CONFIRM") ? "CONFIRMED" : "CANCELLED",
     });
 
-    if (result.outcome === "applied" && result.status === "CONFIRMED") {
+    if (result.outcome === "applied" && (result.status === "CONFIRMED" || result.status === "CANCELLED")) {
       after(async () => {
+        const message = result.status === "CONFIRMED"
+          ? "Thank you! Your order has been confirmed. Your tracking ID will be shared with you shortly."
+          : "Your order has been cancelled as requested. We hope to serve you again. Please visit our store to place a new order: https://www.camelion.store";
         const status = await sendWhatsAppText(
           senderPhone,
-          "Thank you! Your order has been confirmed. Your tracking ID will be shared with you shortly.",
+          message,
         );
         if (status !== "accepted") {
-          console.warn("WhatsApp confirmation follow-up was not confirmed as accepted.", { eventId: body.id, status });
+          console.warn("WhatsApp order follow-up was not confirmed as accepted.", { eventId: body.id, status });
         }
       });
     }
