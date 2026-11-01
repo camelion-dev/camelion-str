@@ -37,10 +37,9 @@ export default async function OrderSuccessPage({ params }: PageProps) {
         <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[var(--red)] text-2xl text-white">✓</span>
         <h1 className="mt-5 text-3xl font-black uppercase tracking-[-0.03em] md:text-4xl">Order placed!</h1>
         <p className="mt-2 text-sm text-[var(--body-gray)]">Thank you for your order.</p>
-        <p className="mt-4 text-xs font-bold uppercase tracking-wider text-[var(--muted)]">Order # {order.orderNumber}</p>
       </div>
 
-      <p className="mx-auto mt-8 max-w-xl text-center text-sm leading-6 text-[var(--body-gray)]" aria-live="polite">Thank you, {order.customerName}. We&apos;ve received your order. A confirmation request is on its way to your WhatsApp account. Please keep an eye on your messages.</p>
+      <p className="mx-auto mt-8 max-w-xl text-center text-sm leading-6 text-[var(--body-gray)]" aria-live="polite">Thank you, {order.customerName}. We&apos;ve received your order. A confirmation request is on its way to your WhatsApp account. Please keep an eye on your messages. Your order ID is <strong>{order.orderNumber}</strong>.</p>
 
       <div className="mx-auto mt-10 grid max-w-2xl gap-6 sm:grid-cols-2">
         <div className="rounded-2xl border border-[var(--border)] p-6">
