@@ -95,8 +95,7 @@ export default function CheckoutPage() {
   function validate(): boolean {
     const nextErrors: Partial<Record<keyof FormState, string>> = {};
     if (!form.name.trim()) nextErrors.name = "Full name is required.";
-    if (!form.phone.trim()) nextErrors.phone = "Phone number is required.";
-    else if (form.phone.replace(/\D/g, "").length < 10) nextErrors.phone = "Enter a valid phone number.";
+    if (!/^03\d{9}$/.test(form.phone)) nextErrors.phone = "Invalid number.";
     if (!form.address.trim()) nextErrors.address = "Delivery address is required.";
     if (!form.city.trim()) nextErrors.city = "City is required.";
     setErrors(nextErrors);
@@ -183,7 +182,7 @@ export default function CheckoutPage() {
               </div>
               <div>
                 <label htmlFor="phone" className="mb-1 block">Phone number</label>
-                <input id="phone" type="tel" placeholder="03XXXXXXXXX" value={form.phone} onChange={(event) => updateField("phone", event.target.value)} className="w-full rounded-lg border border-[var(--border)] px-3" aria-invalid={Boolean(errors.phone)} aria-describedby={errors.phone ? "phone-error" : undefined} />
+                <input id="phone" type="tel" inputMode="numeric" autoComplete="tel-national" maxLength={11} pattern="03[0-9]{9}" placeholder="03XXXXXXXXX" value={form.phone} onChange={(event) => updateField("phone", event.target.value.replace(/\D/g, "").slice(0, 11))} className="w-full rounded-lg border border-[var(--border)] px-3" aria-invalid={Boolean(errors.phone)} aria-describedby={errors.phone ? "phone-error" : undefined} />
                 {errors.phone && <p id="phone-error" className="mt-1 text-xs font-semibold text-[var(--red)]">{errors.phone}</p>}
               </div>
               <div>

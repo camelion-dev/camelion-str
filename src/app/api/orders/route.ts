@@ -75,7 +75,7 @@ export async function POST(request: Request) {
   const shippingPostalCode = typeof body.shipping?.postalCode === "string" ? body.shipping.postalCode.trim() : "";
 
   if (!customerName || customerName.length > 120) return NextResponse.json({ success: false, error: "Enter a valid full name." }, { status: 400 });
-  if (!customerPhone || customerPhone.length > 40) return NextResponse.json({ success: false, error: "Enter a valid phone number." }, { status: 400 });
+  if (!/^03\d{9}$/.test(customerPhone)) return NextResponse.json({ success: false, error: "Invalid number." }, { status: 400 });
   if (!shippingAddress || shippingAddress.length > 300) return NextResponse.json({ success: false, error: "Enter a valid delivery address." }, { status: 400 });
   if (!shippingCity || shippingCity.length > 120) return NextResponse.json({ success: false, error: "Enter a valid city." }, { status: 400 });
   if (customerEmail.length > 254 || shippingRegion.length > 100 || shippingPostalCode.length > 20) {
