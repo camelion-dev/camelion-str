@@ -1,15 +1,12 @@
 "use client";
 
 import { startTransition, useEffect, useRef, useState } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Link from "@/components/LoadingLink";
 import { useRouter } from "next/navigation";
 import type { CatalogProduct } from "@/lib/catalog";
 import type { AdminOrderSummary } from "@/lib/orders";
 import type { AdminCustomerSummary } from "@/lib/orders";
 import { getProductSearchRelevance } from "@/lib/product-search";
-import { ContentTransition, contentTransitionProps } from "@/components/PageTransition";
 import { startNavigationLoading } from "@/lib/navigation-loading";
 
 const emptyForm = { name: "", category: "Batteries", price: "", compareAtPrice: "", stock: "0", badge: "", keywords: "", description: "", detailedDescription: "", imageUrl: "", imagePath: "" };
@@ -51,7 +48,6 @@ export default function AdminPortal({ initialProducts }: { initialProducts: Cata
   const [imagePreview, setImagePreview] = useState("");
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
   const [currentDate, setCurrentDate] = useState(() => new Date());
-  const portalRef = useRef<HTMLElement>(null);
   const isSavingProductRef = useRef(false);
   const isReorderingProductsRef = useRef(false);
   const router = useRouter();
@@ -127,15 +123,6 @@ export default function AdminPortal({ initialProducts }: { initialProducts: Cata
     const timer = window.setInterval(() => setCurrentDate(new Date()), 60 * 1000);
     return () => window.clearInterval(timer);
   }, []);
-
-  useEffect(() => {
-    if (!portalRef.current) return;
-    gsap.registerPlugin(ScrollTrigger);
-    const context = gsap.context(() => {
-      gsap.fromTo(".admin-workspace > *", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.55, stagger: 0.06, ease: "power3.out", scrollTrigger: { trigger: portalRef.current, start: "top 88%", once: true } });
-    }, portalRef);
-    return () => context.revert();
-  }, [tab]);
 
   const refresh = async () => {
     const response = await fetch("/api/admin/products");
@@ -273,7 +260,7 @@ export default function AdminPortal({ initialProducts }: { initialProducts: Cata
 
   const nav = [["overview", "Overview"], ["catalogue", "Product catalogue"], ["orders", "Orders & purchases"], ["customers", "Customers"]] as const;
   return (
-    <main ref={portalRef} className="admin-portal admin-command-center min-h-screen bg-[#f7f8fa] text-[#111]">
+    <main className="admin-portal admin-command-center min-h-screen bg-[#f7f8fa] text-[#111]">
       <div className="flex min-h-screen flex-col lg:flex-row">
         <aside className="admin-sidebar w-full shrink-0 bg-[#111214] p-6 text-white lg:w-[260px] lg:p-7"><Link href="/" className="inline-flex items-center" aria-label="Camelion home"><img src="/brand-logo.avif" alt="Camelion" className="h-8 w-auto object-contain" /></Link><p className="mt-3 text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Control centre</p><nav className="mt-12 grid gap-1.5">{nav.map(([id, label]) => <button key={id} onClick={() => changeTab(id)} className={`flex items-center justify-between rounded-md px-4 py-3 text-left text-xs font-semibold tracking-wide transition-colors ${tab === id ? "border-l-2 border-[#e00000] bg-white/[0.09] text-white" : "border-l-2 border-transparent text-white/50 hover:bg-white/[0.06] hover:text-white"}`}>{label}<span className="text-white/35">→</span></button>)}</nav><div className="mt-14 border-t border-white/10 pt-6 text-xs text-white/45"><p>Signed in as</p><p className="mt-1 font-semibold text-white">LEW · Administrator</p><Link href="/" className="mt-6 inline-block font-semibold text-[#ff5757]">View live store ↗</Link><button onClick={async () => { await fetch("/api/admin/login", { method: "DELETE" }); startNavigationLoading("/admin/login"); startTransition(() => router.push("/admin/login")); }} className="mt-5 block font-semibold text-white/50 hover:text-white">Sign out</button></div></aside>
         <section className="admin-workspace min-w-0 flex-1 p-5 md:p-8 lg:p-10 xl:p-12">
@@ -293,14 +280,12 @@ export default function AdminPortal({ initialProducts }: { initialProducts: Cata
             </div>
           </header>
           {notice && <div className="mt-6 flex items-center justify-between border border-[#e000000]/20 bg-white px-4 py-3 text-sm"><span>{notice}</span><button onClick={() => setNotice("")} className="font-bold text-[#e00000]" aria-label="Dismiss notification">×</button></div>}
-          <ContentTransition key={`admin-tab-${tab}`} {...contentTransitionProps}>
-            <div className="admin-tab-content">
+          <div className="admin-tab-content">
               {tab === "overview" && <Overview products={products} orders={orders} setTab={changeTab} />}
               {tab === "catalogue" && <Catalogue products={products} form={form} editingId={editingId} imagePreview={imagePreview} updateForm={updateForm} submitProduct={submitProduct} editProduct={editProduct} toggleProduct={toggleProduct} removeProduct={removeProduct} onReorder={reorderProducts} isReorderingProducts={isReorderingProducts} cancelEdit={() => { setEditingId(null); setForm(emptyForm); setImageFile(null); setImagePreview(""); setIsAddProductModalOpen(false); }} onImageChange={(file) => { if (file.size > 4 * 1024 * 1024) { setNotice("Images must be 4MB or smaller."); return; } setImageFile(file); setImagePreview(URL.createObjectURL(file)); }} isAddProductModalOpen={isAddProductModalOpen} setIsAddProductModalOpen={setIsAddProductModalOpen} isSavingProduct={isSavingProduct} />}
               {tab === "orders" && (orders.length > 0 ? <OrdersTable orders={orders} expandedOrderId={expandedOrderId} onExpand={setExpandedOrderId} onStatusChange={updateOrderStatus} /> : <p className="mt-8 border border-[#111]/15 bg-white p-8 text-center text-sm text-[#888]">No orders yet. Orders placed by customers at checkout will show up here.</p>)}
               {tab === "customers" && <DataTable title="Customers" columns={["Customer", "Email / phone", "Orders", "Lifetime value"]} rows={customers.map((customer) => [customer.name, customer.email || customer.phone || "No contact details", `${customer.orderCount} order${customer.orderCount === 1 ? "" : "s"}`, `PKR ${customer.lifetimeValue.toLocaleString()}`])} />}
-            </div>
-          </ContentTransition>
+          </div>
         </section>
       </div>
     </main>
