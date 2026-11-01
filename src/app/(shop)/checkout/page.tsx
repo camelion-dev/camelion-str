@@ -132,8 +132,7 @@ export default function CheckoutPage() {
         return;
       }
       clearCart();
-      const whatsappStatus = data.whatsappMessageStatus === "accepted" ? "sent" : data.whatsappMessageStatus === "not_sent" ? "not_sent" : "unknown";
-      const successUrl = `/order/success/${data.order.id}?whatsapp=${whatsappStatus}`;
+      const successUrl = `/order/success/${data.order.id}`;
       startNavigationLoading(successUrl);
       startTransition(() => router.push(successUrl));
     } catch {

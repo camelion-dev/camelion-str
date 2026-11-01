@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { getOrderById, placeOrder } from "@/lib/orders";
 import { sendOrderConfirmationMessage } from "@/lib/whatsapp-provider";
 import { getCurrentAccount } from "@/lib/account-auth";
@@ -99,18 +99,22 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, error: result.error }, { status: 400 });
   }
 
-  let whatsappMessageStatus: "accepted" | "not_sent" | "unknown" = "not_sent";
-  try {
-    const order = await getOrderById(result.orderId);
-    if (order) whatsappMessageStatus = await sendOrderConfirmationMessage(order);
-  } catch {
-    // The order is already committed; a messaging failure must not undo checkout.
-  }
+  after(async () => {
+    try {
+      const order = await getOrderById(result.orderId);
+      if (!order) return;
+      const status = await sendOrderConfirmationMessage(order);
+      if (status !== "accepted") {
+        console.warn("WhatsApp order message was not confirmed as accepted.", { orderId: result.orderId, status });
+      }
+    } catch {
+      console.error("WhatsApp order message background task failed.", { orderId: result.orderId });
+    }
+  });
 
   const response = NextResponse.json({
     success: true,
     order: { id: result.orderId, orderNumber: result.orderNumber, subtotal: result.subtotal, deliveryFee: result.deliveryFee, total: result.total },
-    whatsappMessageStatus,
   }, { headers: { "Cache-Control": "private, no-store" } });
   response.cookies.set({
     name: ORDER_RECEIPT_COOKIE,
