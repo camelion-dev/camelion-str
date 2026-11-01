@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 const MAX_BODY_BYTES = 16 * 1024;
-const replyPattern = /^\s*(CONFIRM(?:ED)?|CANCEL(?:LED)?)(?:\s+(CM-\d{6}-[A-Z0-9]{6}))?\s*$/i;
+const replyPattern = /^\s*(?:I\s+)?(CONFIRM(?:ED)?|CANCEL(?:LED|ED)?)(?:\s+(CM-\d{6}-[A-Z0-9]{6}))?\s*[,!.?]*\s*$/i;
 
 type WhatsAppWebhookBody = {
   event?: unknown;
