@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 const MAX_BODY_BYTES = 16 * 1024;
-const replyPattern = /^\s*(CONFIRMED|CANCELLED)\s+(CM-\d{6}-[A-Z0-9]{6})\s*$/i;
+const replyPattern = /^\s*(CONFIRM(?:ED)?|CANCEL(?:LED)?)(?:\s+(CM-\d{6}-[A-Z0-9]{6}))?\s*$/i;
 
 type WhatsAppWebhookBody = {
   event?: unknown;
@@ -104,9 +104,9 @@ export async function POST(request: Request) {
   try {
     await processWhatsAppOrderReply({
       eventId: body.id,
-      orderNumber: match[2].toUpperCase(),
+      orderNumber: match[2]?.toUpperCase(),
       senderPhone,
-      action: match[1].toUpperCase() as "CONFIRMED" | "CANCELLED",
+      action: match[1].toUpperCase().startsWith("CONFIRM") ? "CONFIRMED" : "CANCELLED",
     });
     return NextResponse.json({ ok: true });
   } catch {

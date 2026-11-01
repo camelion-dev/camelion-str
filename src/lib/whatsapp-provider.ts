@@ -40,9 +40,8 @@ function createOrderMessage(order: OrderRecord) {
     `Total: ${order.currency} ${order.total.toLocaleString("en-PK")}`,
     "Payment: Cash on Delivery",
     "",
-    "Please reply with either:",
-    `CONFIRMED ${order.orderNumber} to confirm this order`,
-    `CANCELLED ${order.orderNumber} to cancel this order`,
+    "Reply CONFIRM to confirm this order or CANCEL to cancel it.",
+    `If you have more than one pending order, include this order number: ${order.orderNumber}`,
     "",
     "Your order remains pending until you reply.",
   ].join("\n");

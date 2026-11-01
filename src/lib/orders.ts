@@ -98,7 +98,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
 
 export async function processWhatsAppOrderReply(input: {
   eventId: string;
-  orderNumber: string;
+  orderNumber?: string;
   senderPhone: string;
   action: "CONFIRMED" | "CANCELLED";
 }) {
