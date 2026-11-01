@@ -52,16 +52,32 @@ export default function CartPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hydrated, productIds.join(",")]);
 
+  useEffect(() => {
+    if (!hydrated || loading || loadError) return;
+
+    for (const item of items) {
+      const product = products.find((entry) => entry.id === item.productId);
+      if (!product || !product.active || product.stock <= 0) {
+        removeItem(item.productId);
+      } else if (item.quantity > product.stock) {
+        setQuantity(item.productId, product.stock, product.stock);
+      }
+    }
+  }, [hydrated, items, loadError, loading, products, removeItem, setQuantity]);
+
   const lines = items
     .map((item) => ({ item, product: products.find((product) => product.id === item.productId) }))
-    .filter((line): line is { item: (typeof items)[number]; product: CatalogProduct } => Boolean(line.product));
+    .filter((line): line is { item: (typeof items)[number]; product: CatalogProduct } => Boolean(line.product?.active && line.product.stock > 0));
 
-  const missingCount = items.length - lines.length;
-  const unavailableLines = lines.filter((line) => !line.product.active || line.product.stock <= 0);
   const subtotal = calculateSubtotal(lines.map((line) => ({ price: line.product.price, quantity: line.item.quantity })));
   const deliveryFee = calculateDeliveryFee(subtotal);
   const total = calculateTotal(subtotal, deliveryFee);
-  const canCheckout = lines.length > 0 && unavailableLines.length === 0 && missingCount === 0 && !loading;
+  const needsReconciliation = items.some((item) => {
+    const product = products.find((entry) => entry.id === item.productId);
+    return !product || !product.active || product.stock <= 0 || item.quantity > product.stock;
+  });
+  const itemCount = lines.reduce((count, line) => count + line.item.quantity, 0);
+  const canCheckout = lines.length > 0 && !needsReconciliation && !loading;
 
   if (!hydrated || loading) {
     return <PageTransition key="cart" {...pageTransitionProps}><div className="section-shell py-24 text-center"><LoadingIndicator label="Loading your cart" /></div></PageTransition>;
@@ -78,7 +94,7 @@ export default function CartPage() {
     );
   }
 
-  if (items.length === 0) {
+  if (lines.length === 0) {
     return (
       <PageTransition key="cart" {...pageTransitionProps}>
       <div className="section-shell flex flex-col items-center gap-4 py-24 text-center">
@@ -97,22 +113,15 @@ export default function CartPage() {
       <div className="cart-heading-enter mb-8 flex items-end justify-between border-b border-[var(--border)] pb-5">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--red)]">Your cart</p>
-          <h1 className="mt-2 text-3xl font-black uppercase tracking-[-0.03em]">{items.reduce((total, item) => total + item.quantity, 0)} item{items.reduce((total, item) => total + item.quantity, 0) === 1 ? "" : "s"}</h1>
+          <h1 className="mt-2 text-3xl font-black uppercase tracking-[-0.03em]">{itemCount} item{itemCount === 1 ? "" : "s"}</h1>
         </div>
         <Link href="/" className="hidden text-xs font-bold uppercase tracking-wider text-[var(--red)] sm:block">Continue shopping →</Link>
       </div>
 
-      {missingCount > 0 && (
-        <p className="mb-4 rounded-xl border border-[var(--red)] bg-[var(--red)]/5 px-4 py-3 text-sm text-[var(--red)]">
-          {missingCount} item{missingCount === 1 ? "" : "s"} in your cart {missingCount === 1 ? "is" : "are"} no longer available and {missingCount === 1 ? "has" : "have"} been hidden. You can add different products from the shop.
-        </p>
-      )}
-
       <div className="grid gap-10 lg:grid-cols-[1fr_360px]">
         <div className="divide-y divide-[var(--border)]">
           {lines.map(({ item, product }, index) => {
-            const unavailable = !product.active || product.stock <= 0;
-            const exceedsStock = !unavailable && item.quantity > product.stock;
+            const exceedsStock = item.quantity > product.stock;
             return (
               <div key={item.productId} className="cart-line-enter flex gap-4 py-6" style={{ animationDelay: `${Math.min(index * 130, 780)}ms` }}>
                 <Link href={`/products/${product.slug}`} className="product-visual h-24 w-24 shrink-0 overflow-hidden rounded-xl border border-[var(--border)]">
@@ -123,7 +132,6 @@ export default function CartPage() {
                     <div className="min-w-0">
                       <Link href={`/products/${product.slug}`} className="break-words text-sm font-bold uppercase tracking-wide hover:text-[var(--red)]">{product.name}</Link>
                       <p className="mt-1 text-sm text-[var(--body-gray)]">Rs. {product.price.toLocaleString()}</p>
-                      {unavailable && <p className="mt-1 text-xs font-bold uppercase tracking-wider text-[var(--red)]">Currently unavailable</p>}
                       {exceedsStock && <p className="mt-1 text-xs font-bold uppercase tracking-wider text-[var(--red)]">Only {product.stock} left — please lower the quantity</p>}
                     </div>
                     <button type="button" onClick={() => removeItem(item.productId)} className="text-xs font-bold uppercase tracking-wider text-[var(--muted)] hover:text-[var(--red)]">Remove</button>
@@ -132,7 +140,7 @@ export default function CartPage() {
                     <div className="inline-flex items-center rounded-xl border border-[var(--foreground)]">
                       <button type="button" onClick={() => setQuantity(item.productId, item.quantity - 1, product.stock)} aria-label={`Decrease quantity of ${product.name}`} className="flex h-11 w-11 items-center justify-center text-base font-bold">−</button>
                       <span className="flex h-11 w-11 items-center justify-center text-sm font-bold">{item.quantity}</span>
-                      <button type="button" onClick={() => setQuantity(item.productId, item.quantity + 1, product.stock)} disabled={unavailable || item.quantity >= product.stock} aria-label={`Increase quantity of ${product.name}`} className="flex h-11 w-11 items-center justify-center text-base font-bold disabled:text-[var(--muted)]">+</button>
+                      <button type="button" onClick={() => setQuantity(item.productId, item.quantity + 1, product.stock)} disabled={item.quantity >= product.stock} aria-label={`Increase quantity of ${product.name}`} className="flex h-11 w-11 items-center justify-center text-base font-bold disabled:text-[var(--muted)]">+</button>
                     </div>
                     <p className="w-full text-right text-sm font-bold sm:w-auto">Subtotal: Rs. {(product.price * item.quantity).toLocaleString()}</p>
                   </div>
@@ -157,7 +165,7 @@ export default function CartPage() {
           >
             Proceed to checkout
           </Link>
-          {!canCheckout && <p className="mt-3 text-xs text-[var(--muted)]">Resolve the unavailable or out-of-stock items above to continue.</p>}
+          {needsReconciliation && <p className="mt-3 text-xs text-[var(--muted)]">Updating cart availability…</p>}
           <p className="mt-4 text-xs text-[var(--muted)]">Payment: Cash on Delivery only.</p>
         </div>
       </div>
