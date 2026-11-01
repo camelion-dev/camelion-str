@@ -295,7 +295,8 @@ export default function AdminPortal({ initialProducts }: { initialProducts: Cata
 function Overview({ products, orders, setTab }: { products: CatalogProduct[]; orders: AdminOrderSummary[]; setTab: (tab: Tab) => void }) {
   const lowStock = products.filter((product) => product.stock < 10).length;
   const activeProducts = products.filter((product) => product.active).length;
-  const grossRevenue = orders.reduce((sum, order) => sum + order.total, 0);
+  const revenueOrders = orders.filter((order) => !["PENDING", "CANCELLED", "RETURNED"].includes(order.status));
+  const grossRevenue = revenueOrders.reduce((sum, order) => sum + order.total, 0);
   const weekAgo = new Date();
   weekAgo.setDate(weekAgo.getDate() - 7);
   const ordersThisWeek = orders.filter((order) => new Date(order.createdAt) >= weekAgo).length;
