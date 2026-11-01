@@ -196,17 +196,22 @@ export type AdminOrderSummary = {
   total: number;
   status: OrderStatus;
   createdAt: string;
+  confirmedAt?: string;
   items: OrderItemRecord[];
 };
 
 /** For the admin "Orders & purchases" tab -- newest first, capped at 50. */
 export async function getAdminOrders(): Promise<AdminOrderSummary[]> {
-  const response = await supabase("Order?select=id,number,customerName,customerPhone,customerEmail,paymentMethod,currency,subtotal,deliveryFee,total,status,createdAt,Address(line1,line2,city,region,postalCode),OrderItem(id,productId,productName,unitPrice,quantity)&order=createdAt.desc&limit=50");
+  const response = await supabase("Order?select=id,number,customerName,customerPhone,customerEmail,paymentMethod,currency,subtotal,deliveryFee,total,status,createdAt,Address(line1,line2,city,region,postalCode),OrderItem(id,productId,productName,unitPrice,quantity),OrderStatusHistory(to,createdAt)&order=createdAt.desc&limit=50");
   if (!response.ok) return [];
   const rows = (await response.json()) as Array<Record<string, unknown>>;
   return rows.map((row) => {
     const address = row.Address as Record<string, unknown> | null;
     const items = Array.isArray(row.OrderItem) ? row.OrderItem as Array<Record<string, unknown>> : [];
+    const statusHistory = Array.isArray(row.OrderStatusHistory) ? row.OrderStatusHistory as Array<Record<string, unknown>> : [];
+    const confirmedAt = statusHistory
+      .filter((entry) => entry.to === "CONFIRMED" && typeof entry.createdAt === "string")
+      .sort((first, second) => Date.parse(String(second.createdAt)) - Date.parse(String(first.createdAt)))[0]?.createdAt;
     return {
       id: String(row.id),
       orderNumber: String(row.number),
@@ -225,6 +230,7 @@ export async function getAdminOrders(): Promise<AdminOrderSummary[]> {
       total: Number(row.total),
       status: String(row.status) as OrderStatus,
       createdAt: String(row.createdAt),
+      confirmedAt: typeof confirmedAt === "string" ? confirmedAt : undefined,
       items: items.map((item) => ({
         id: String(item.id),
         productId: item.productId ? String(item.productId) : null,
