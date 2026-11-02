@@ -6,6 +6,7 @@ import { startTransition, useEffect, useMemo, useState, type FormEvent } from "r
 import { useCart } from "@/context/CartContext";
 import type { CatalogProduct } from "@/lib/catalog";
 import { calculateDeliveryFee, calculateSubtotal, calculateTotal } from "@/lib/pricing";
+import { isValidGmailAddress } from "@/lib/email-validation";
 import { PageTransition, pageTransitionProps } from "@/components/PageTransition";
 import { LoadingIndicator } from "@/components/LoadingIndicator";
 import { startNavigationLoading } from "@/lib/navigation-loading";
@@ -96,6 +97,7 @@ export default function CheckoutPage() {
     const nextErrors: Partial<Record<keyof FormState, string>> = {};
     if (!form.name.trim()) nextErrors.name = "Full name is required.";
     if (!/^03\d{9}$/.test(form.phone)) nextErrors.phone = "Invalid number.";
+    if (!isValidGmailAddress(form.email)) nextErrors.email = "Enter a valid Gmail address ending in @gmail.com.";
     if (!form.address.trim()) nextErrors.address = "Delivery address is required.";
     if (!form.city.trim()) nextErrors.city = "City is required.";
     setErrors(nextErrors);
@@ -119,7 +121,7 @@ export default function CheckoutPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           items: items.map((item) => ({ productId: item.productId, quantity: item.quantity })),
-          customer: { name: form.name.trim(), phone: form.phone.trim(), email: form.email.trim() || undefined },
+          customer: { name: form.name.trim(), phone: form.phone.trim(), email: form.email.trim().toLowerCase() },
           shipping: { address: form.address.trim(), city: form.city.trim(), region: form.region.trim() || undefined, postalCode: form.postalCode.trim() || undefined },
           paymentMethod: "COD",
         }),
@@ -186,8 +188,9 @@ export default function CheckoutPage() {
                 {errors.phone && <p id="phone-error" className="mt-1 text-xs font-semibold text-[var(--red)]">{errors.phone}</p>}
               </div>
               <div>
-                <label htmlFor="email" className="mb-1 block">Email (optional)</label>
-                <input id="email" type="email" value={form.email} onChange={(event) => updateField("email", event.target.value)} className="w-full rounded-lg border border-[var(--border)] px-3" />
+                <label htmlFor="email" className="mb-1 block">Gmail address</label>
+                <input id="email" type="email" required autoComplete="email" maxLength={254} pattern="[A-Za-z0-9._%+-]+@gmail\.com" value={form.email} onChange={(event) => updateField("email", event.target.value)} className="w-full rounded-lg border border-[var(--border)] px-3" aria-invalid={Boolean(errors.email)} aria-describedby={errors.email ? "email-error" : undefined} />
+                {errors.email && <p id="email-error" className="mt-1 text-xs font-semibold text-[var(--red)]">{errors.email}</p>}
               </div>
             </div>
           </fieldset>

@@ -55,6 +55,10 @@ Before deploying product reordering, run [`supabase/catalog_order.sql`](supabase
 
 Before deploying rich product descriptions, run [`supabase/product_detailed_description.sql`](supabase/product_detailed_description.sql) in Supabase Dashboard > SQL Editor. It adds an optional formatted-description field without changing the existing short description. Product details entered in the admin are sanitized before storage and display.
 
+## Checkout email addresses
+
+Checkout requires a syntactically valid `@gmail.com` address. The order API normalizes it to lowercase, and the database enforces the Gmail domain with a check constraint. Apply [`supabase/orders_gmail_email.sql`](supabase/orders_gmail_email.sql) in Supabase Dashboard > SQL Editor before deploying this requirement to another environment.
+
 ## Supabase Storage
 
 1. Open Supabase Dashboard > SQL Editor.

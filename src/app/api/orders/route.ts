@@ -1,6 +1,7 @@
 import { after, NextResponse } from "next/server";
 import { getOrderById, placeOrder } from "@/lib/orders";
 import { sendOrderConfirmationMessage } from "@/lib/whatsapp-provider";
+import { isValidGmailAddress } from "@/lib/email-validation";
 import { getCurrentAccount } from "@/lib/account-auth";
 import { ORDER_RECEIPT_COOKIE, ORDER_RECEIPT_SECONDS, createOrderReceiptToken, isOrderReceiptSigningConfigured } from "@/lib/order-receipt";
 import { enforceRateLimit } from "@/lib/rate-limit";
@@ -68,7 +69,7 @@ export async function POST(request: Request) {
 
   const customerName = typeof body.customer?.name === "string" ? body.customer.name.trim() : "";
   const customerPhone = typeof body.customer?.phone === "string" ? body.customer.phone.trim() : "";
-  const customerEmail = typeof body.customer?.email === "string" ? body.customer.email.trim() : "";
+  const customerEmail = typeof body.customer?.email === "string" ? body.customer.email.trim().toLowerCase() : "";
   const shippingAddress = typeof body.shipping?.address === "string" ? body.shipping.address.trim() : "";
   const shippingCity = typeof body.shipping?.city === "string" ? body.shipping.city.trim() : "";
   const shippingRegion = typeof body.shipping?.region === "string" ? body.shipping.region.trim() : "";
@@ -76,6 +77,7 @@ export async function POST(request: Request) {
 
   if (!customerName || customerName.length > 120) return NextResponse.json({ success: false, error: "Enter a valid full name." }, { status: 400 });
   if (!/^03\d{9}$/.test(customerPhone)) return NextResponse.json({ success: false, error: "Invalid number." }, { status: 400 });
+  if (!isValidGmailAddress(customerEmail)) return NextResponse.json({ success: false, error: "Enter a valid Gmail address ending in @gmail.com." }, { status: 400 });
   if (!shippingAddress || shippingAddress.length > 300) return NextResponse.json({ success: false, error: "Enter a valid delivery address." }, { status: 400 });
   if (!shippingCity || shippingCity.length > 120) return NextResponse.json({ success: false, error: "Enter a valid city." }, { status: 400 });
   if (customerEmail.length > 254 || shippingRegion.length > 100 || shippingPostalCode.length > 20) {
@@ -88,7 +90,7 @@ export async function POST(request: Request) {
     userId: account?.id,
     customerName,
     customerPhone,
-    customerEmail: customerEmail || undefined,
+    customerEmail,
     shippingAddress,
     shippingCity,
     shippingRegion: shippingRegion || undefined,
